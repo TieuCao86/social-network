@@ -2,12 +2,13 @@ spring:
     application:
         name: social-network-backend
 
-    autoconfigure:
-        exclude:
-            - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
-            - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
-            - org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration
-            - org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration
+    profiles:
+        active: dev
 
 server:
     port: 8080
+
+logging:
+    level:
+        root: INFO
+        com.socialnetwork: INFO
