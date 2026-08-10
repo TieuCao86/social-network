@@ -11,9 +11,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MissingPathVariableException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.LinkedHashMap;
@@ -53,7 +54,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException exception
+            MethodArgumentNotValidException exception,
+            HttpServletRequest request
     ) {
         Map<String, String> errors = new LinkedHashMap<>();
 
@@ -67,7 +69,9 @@ public class GlobalExceptionHandler {
                 );
 
         log.warn(
-                "Dữ liệu không hợp lệ | lỗi={}",
+                "Dữ liệu không hợp lệ | phương thức={} | đường dẫn={} | lỗi={}",
+                request.getMethod(),
+                request.getRequestURI(),
                 errors
         );
 
@@ -85,7 +89,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleConstraintViolationException(
-            ConstraintViolationException exception
+            ConstraintViolationException exception,
+            HttpServletRequest request
     ) {
         Map<String, String> errors = new LinkedHashMap<>();
 
@@ -98,7 +103,9 @@ public class GlobalExceptionHandler {
                 );
 
         log.warn(
-                "Vi phạm điều kiện dữ liệu | lỗi={}",
+                "Vi phạm điều kiện dữ liệu | phương thức={} | đường dẫn={} | lỗi={}",
+                request.getMethod(),
+                request.getRequestURI(),
                 errors
         );
 
@@ -146,6 +153,29 @@ public class GlobalExceptionHandler {
                 request.getMethod(),
                 request.getRequestURI(),
                 exception.getParameterName()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(
+                        ErrorCode.INVALID_REQUEST
+                ));
+    }
+
+    // =======================================================
+    // Xử lý thiếu path variable
+    // =======================================================
+
+    @ExceptionHandler(MissingPathVariableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingPathVariableException(
+            MissingPathVariableException exception,
+            HttpServletRequest request
+    ) {
+        log.warn(
+                "Thiếu path variable | phương thức={} | đường dẫn={} | variable={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                exception.getVariableName()
         );
 
         return ResponseEntity
