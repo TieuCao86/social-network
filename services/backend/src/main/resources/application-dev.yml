@@ -3,17 +3,6 @@ spring:
     activate:
       on-profile: dev
 
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
-    operations-sorter: method
-    tags-sorter: alpha
-    doc-expansion: none
-
   datasource:
     url: jdbc:postgresql://localhost:5432/social_network
     username: postgres
@@ -35,6 +24,18 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+
 logging:
   level:
     root: INFO
@@ -44,3 +45,12 @@ management:
   health:
     redis:
       enabled: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000
+
+  cookie:
+    secure: false
+    same-site: Lax

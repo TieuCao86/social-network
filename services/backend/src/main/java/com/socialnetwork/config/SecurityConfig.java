@@ -26,7 +26,9 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
 
-                                "/api/users"
+                                "/api/users/**",
+
+                                "/api/auth/**"
                         ).permitAll()
                 );
 

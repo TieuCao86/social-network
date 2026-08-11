@@ -88,6 +88,12 @@ public enum ErrorCode {
             HttpStatus.CONFLICT
     ),
 
+    USER_NOT_ACTIVE(
+            "USER_005",
+            "Tài khoản đã dừng hoạt động.",
+            HttpStatus.CONFLICT
+    ),
+
     // =======================================================
     // Authentication
     // =======================================================
