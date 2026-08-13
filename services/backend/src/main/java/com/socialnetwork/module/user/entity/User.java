@@ -1,34 +1,26 @@
 package com.socialnetwork.module.user.entity;
 
 import com.socialnetwork.common.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
-@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@SuperBuilder
 public class User extends BaseEntity {
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(unique = true)
     private String email;
 
-    @Column(unique = true, length = 20)
+    @Column(length = 20, unique = true)
     private String phone;
 
     @Column(name = "password_hash", nullable = false)
@@ -44,11 +36,9 @@ public class User extends BaseEntity {
     @Builder.Default
     private UserRole role = UserRole.USER;
 
-    @Column(name = "email_verified", nullable = false)
-    @Builder.Default
-    private boolean emailVerified = false;
+    @Column(nullable = false)
+    private boolean emailVerified;
 
-    @Column(name = "phone_verified", nullable = false)
-    @Builder.Default
-    private boolean phoneVerified = false;
+    @Column(nullable = false)
+    private boolean phoneVerified;
 }

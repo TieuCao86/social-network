@@ -5,11 +5,15 @@ import com.socialnetwork.module.auth.dto.request.LoginRequest;
 import com.socialnetwork.module.auth.dto.response.AuthResult;
 import com.socialnetwork.module.auth.dto.response.LoginResponse;
 import com.socialnetwork.module.auth.service.AuthService;
+import com.socialnetwork.module.user.dto.request.UserCreateRequest;
+import com.socialnetwork.module.user.dto.response.UserResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -32,7 +36,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie
                 .from("access_token", result.getAccessToken())
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .sameSite("Lax")
                 .path("/")
                 .maxAge(Duration.ofDays(1))
@@ -52,5 +56,22 @@ public class AuthController {
                 "Đăng nhập thành công",
                 loginResponse
         );
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<UserResponse>> register(
+            @Valid @RequestBody UserCreateRequest request
+    ) {
+
+        UserResponse response = authService.register(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(
+                        ApiResponse.success(
+                                "Đăng ký tài khoản thành công",
+                                response
+                        )
+                );
     }
 }

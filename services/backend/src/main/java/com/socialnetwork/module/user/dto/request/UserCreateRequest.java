@@ -10,10 +10,18 @@ import lombok.Setter;
 @Setter
 public class UserCreateRequest {
 
-    @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
-    @Size(max = 255, message = "Email không được vượt quá 255 ký tự")
+    @Size(
+            max = 255,
+            message = "Email không được vượt quá 255 ký tự"
+    )
     private String email;
+
+    @Size(
+            max = 20,
+            message = "Số điện thoại không được vượt quá 20 ký tự"
+    )
+    private String phone;
 
     @NotBlank(message = "Mật khẩu không được để trống")
     @Size(

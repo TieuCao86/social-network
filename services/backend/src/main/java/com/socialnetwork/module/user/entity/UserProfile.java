@@ -1,14 +1,9 @@
 package com.socialnetwork.module.user.entity;
 
-import com.socialnetwork.common.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.socialnetwork.common.entity.BaseChildEntity;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -17,32 +12,25 @@ import java.util.UUID;
 @Table(name = "user_profiles")
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserProfile extends BaseEntity {
+@SuperBuilder
+public class UserProfile extends BaseChildEntity {
 
-    @Column(name = "user_id", nullable = false, unique = true)
+    @Id
+    @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "full_name", length = 100)
+    @Column(length = 100)
     private String fullName;
 
-    @Column(name = "avatar_file_id")
     private UUID avatarFileId;
-
-    @Column(name = "cover_file_id")
     private UUID coverFileId;
 
     @Column(length = 500)
     private String bio;
 
-    @Column(length = 255)
     private String website;
-
-    @Column(length = 255)
     private String location;
-
-    @Column(name = "birth_date")
     private LocalDate birthDate;
 }

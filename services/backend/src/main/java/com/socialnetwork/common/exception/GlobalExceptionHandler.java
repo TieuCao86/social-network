@@ -297,6 +297,44 @@ public class GlobalExceptionHandler {
     }
 
     // =======================================================
+    // Xử lý vi phạm ràng buộc dữ liệu Database (UNIQUE, Foreign Key...)
+    // =======================================================
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(
+            org.springframework.dao.DataIntegrityViolationException exception,
+            HttpServletRequest request
+    ) {
+        // Lấy nguyên nhân gốc từ Database Driver (PostgreSQL/MySQL/H2)
+        String rootCauseMessage = exception.getRootCause() != null
+                ? exception.getRootCause().getMessage().toLowerCase()
+                : "";
+
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR; // Default fallback
+
+        // 1. Phân tích tên CONSTRAINT đặt ở DDL
+        if (rootCauseMessage.contains("uk_users_username") || rootCauseMessage.contains("username")) {
+            errorCode = ErrorCode.USERNAME_ALREADY_EXISTS;
+        } else if (rootCauseMessage.contains("uk_users_email") || rootCauseMessage.contains("email")) {
+            errorCode = ErrorCode.EMAIL_ALREADY_EXISTS;
+        } else if (rootCauseMessage.contains("uk_users_phone") || rootCauseMessage.contains("phone")) {
+            errorCode = ErrorCode.PHONE_ALREADY_EXISTS;
+        }
+
+        log.warn(
+                "Vi phạm ràng buộc UNIQUE Database | phương thức={} | đường dẫn={} | mã lỗi={} | nguyên nhân={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                errorCode.getCode(),
+                rootCauseMessage
+        );
+
+        return ResponseEntity
+                .status(errorCode.getHttpStatus())
+                .body(ApiResponse.error(errorCode));
+    }
+
+    // =======================================================
     // Xử lý tất cả lỗi không xác định
     // =======================================================
 

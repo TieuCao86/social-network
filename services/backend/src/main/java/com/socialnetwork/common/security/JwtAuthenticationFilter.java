@@ -47,23 +47,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .orElse(null);
 
                 if (user != null) {
+                    // 1. Wrap entity 'User' vào 'CustomUserDetails'
+                    CustomUserDetails userDetails = new CustomUserDetails(user);
 
-                    var authorities = List.of(
-                            new SimpleGrantedAuthority(
-                                    "ROLE_" + user.getRole().name()
-                            )
-                    );
+                    // 2. Chỉ lập authentication khi tài khoản ở trạng thái enabled
+                    if (userDetails.isEnabled()) {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails, // <-- Truyền userDetails làm principal
+                                        null,
+                                        userDetails.getAuthorities() // <-- Lấy authorities trực tiếp từ userDetails
+                                );
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    user,
-                                    null,
-                                    authorities
-                            );
-
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authentication);
+                        SecurityContextHolder
+                                .getContext()
+                                .setAuthentication(authentication);
+                    }
                 }
             }
 

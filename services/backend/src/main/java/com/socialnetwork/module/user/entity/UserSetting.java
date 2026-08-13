@@ -1,14 +1,9 @@
 package com.socialnetwork.module.user.entity;
 
-import com.socialnetwork.common.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.socialnetwork.common.entity.BaseChildEntity;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
@@ -16,27 +11,28 @@ import java.util.UUID;
 @Table(name = "user_settings")
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserSetting extends BaseEntity {
+@SuperBuilder
+public class UserSetting extends BaseChildEntity {
 
-    @Column(name = "user_id", nullable = false, unique = true)
+    @Id
+    @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "private_account", nullable = false)
     @Builder.Default
+    @Column(nullable = false)
     private boolean privateAccount = false;
 
-    @Column(name = "allow_tagging", nullable = false)
     @Builder.Default
+    @Column(nullable = false)
     private boolean allowTagging = true;
 
-    @Column(nullable = false, length = 10)
     @Builder.Default
+    @Column(nullable = false, length = 10)
     private String language = "vi";
 
-    @Column(nullable = false, length = 20)
     @Builder.Default
+    @Column(nullable = false, length = 20)
     private String theme = "SYSTEM";
 }

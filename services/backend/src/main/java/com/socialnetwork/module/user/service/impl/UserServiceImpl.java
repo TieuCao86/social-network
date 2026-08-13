@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -26,39 +28,91 @@ public class UserServiceImpl implements UserService {
     private final UserSettingRepository userSettingRepository;
 
     private final UserMapper userMapper;
-
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public UserResponse createUser(UserCreateRequest request) {
 
-        String email = request.getEmail().trim().toLowerCase();
+        String email = request.getEmail() != null
+                ? request.getEmail().trim().toLowerCase()
+                : null;
+
+        String phone = request.getPhone() != null
+                ? request.getPhone().trim()
+                : null;
+
         String username = request.getUsername().trim();
 
-        // 2. Check trùng lặp
-        if (userRepository.existsByEmail(email)) {
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        if (email != null && email.isBlank()) {
+            email = null;
+        }
+
+        if (phone != null && phone.isBlank()) {
+            phone = null;
+        }
+
+        // Email hoặc Phone bắt buộc phải có một
+        if (email == null && phone == null) {
+            throw new BusinessException(
+                    ErrorCode.EMAIL_OR_PHONE_REQUIRED
+            );
+        }
+
+        // Kiểm tra Username
+        if (userRepository.existsByUsername(username)) {
+            throw new BusinessException(
+                    ErrorCode.USERNAME_ALREADY_EXISTS
+            );
+        }
+
+        // Kiểm tra Email
+        if (email != null && userRepository.existsByEmail(email)) {
+            throw new BusinessException(
+                    ErrorCode.EMAIL_ALREADY_EXISTS
+            );
+        }
+
+        // Kiểm tra Phone
+        if (phone != null && userRepository.existsByPhone(phone)) {
+            throw new BusinessException(
+                    ErrorCode.PHONE_ALREADY_EXISTS
+            );
         }
 
         User user = userMapper.toEntity(request);
+
         user.setUsername(username);
         user.setEmail(email);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setPhone(phone);
+        user.setPasswordHash(
+                passwordEncoder.encode(request.getPassword())
+        );
 
+        // Lưu User
         user = userRepository.saveAndFlush(user);
 
-        UserProfile userProfile = UserProfile.builder()
-                .userId(user.getId())
-                .build();
-        userProfileRepository.save(userProfile);
+        // Tạo Profile
+        userProfileRepository.save(
+                UserProfile.builder()
+                        .userId(user.getId())
+                        .build()
+        );
 
-        UserSetting userSetting = UserSetting.builder()
-                .userId(user.getId())
-                .build();
-        userSettingRepository.save(userSetting);
+        // Tạo Setting
+        userSettingRepository.save(
+                UserSetting.builder()
+                        .userId(user.getId())
+                        .build()
+        );
 
         return userMapper.toResponse(user);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getCurrentUserProfile(User user) {
+
+        return userMapper.toResponse(user);
+    }
 }

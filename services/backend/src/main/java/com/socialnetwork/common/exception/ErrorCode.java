@@ -61,8 +61,8 @@ public enum ErrorCode {
     ),
 
     // =======================================================
-    // User
-    // =======================================================
+// User
+// =======================================================
 
     USER_NOT_FOUND(
             "USER_001",
@@ -92,6 +92,18 @@ public enum ErrorCode {
             "USER_005",
             "Tài khoản đã dừng hoạt động.",
             HttpStatus.CONFLICT
+    ),
+
+    PHONE_ALREADY_EXISTS(
+            "USER_006",
+            "Số điện thoại đã được sử dụng.",
+            HttpStatus.CONFLICT
+    ),
+
+    EMAIL_OR_PHONE_REQUIRED(
+            "USER_007",
+            "Email hoặc số điện thoại phải được cung cấp.",
+            HttpStatus.BAD_REQUEST
     ),
 
     // =======================================================

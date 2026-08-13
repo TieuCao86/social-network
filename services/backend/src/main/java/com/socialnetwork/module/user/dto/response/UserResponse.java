@@ -1,17 +1,17 @@
 package com.socialnetwork.module.user.dto.response;
 
+import com.socialnetwork.module.user.entity.UserRole;
 import com.socialnetwork.module.user.entity.UserStatus;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 @Builder
 public class UserResponse {
 
-    private UUID id;
+    private UUID userId;
 
     private String username;
 
@@ -21,9 +21,9 @@ public class UserResponse {
 
     private UserStatus status;
 
+    private UserRole role;
+
     private boolean emailVerified;
 
     private boolean phoneVerified;
-
-    private LocalDateTime createdAt;
 }
