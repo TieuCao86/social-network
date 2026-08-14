@@ -59,19 +59,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponse>> register(
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<UserResponse> register(
             @Valid @RequestBody UserCreateRequest request
     ) {
-
         UserResponse response = authService.register(request);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(
-                        ApiResponse.success(
-                                "Đăng ký tài khoản thành công",
-                                response
-                        )
-                );
+        return ApiResponse.success(
+                "Đăng ký tài khoản thành công",
+                response
+        );
     }
 }

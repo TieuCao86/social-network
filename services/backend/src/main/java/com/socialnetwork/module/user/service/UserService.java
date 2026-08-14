@@ -10,5 +10,5 @@ public interface UserService {
 
     UserResponse createUser(UserCreateRequest request);
 
-    UserResponse getCurrentUserProfile(User user);
+    UserResponse getCurrentUserProfile(UUID userId);
 }

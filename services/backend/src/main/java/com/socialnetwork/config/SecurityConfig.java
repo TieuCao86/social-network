@@ -57,6 +57,8 @@ public class SecurityConfig {
                         // 2. PUBLIC API ĐĂNG KÝ USER (Bổ sung dòng này!)
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+
                         // 3. ADMIN APIS
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")

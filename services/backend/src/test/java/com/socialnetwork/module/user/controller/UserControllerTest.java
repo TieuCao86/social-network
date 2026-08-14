@@ -16,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
@@ -82,7 +81,8 @@ class UserControllerTest {
                 .phone("0912345678")
                 .build();
 
-        when(userService.getCurrentUserProfile(user))
+        // Đổi sang stub bằng UUID: user.getId()
+        when(userService.getCurrentUserProfile(user.getId()))
                 .thenReturn(response);
 
         UsernamePasswordAuthenticationToken authentication =
@@ -98,17 +98,13 @@ class UserControllerTest {
                                 .with(authentication(authentication))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success")
-                        .value(true))
-                .andExpect(jsonPath("$.data.username")
-                        .value("test_user"))
-                .andExpect(jsonPath("$.data.email")
-                        .value("test@example.com"))
-                .andExpect(jsonPath("$.data.phone")
-                        .value("0912345678"));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.username").value("test_user"))
+                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.phone").value("0912345678"));
 
-        verify(userService)
-                .getCurrentUserProfile(user);
+        // Verify với UUID: user.getId()
+        verify(userService).getCurrentUserProfile(user.getId());
     }
 
     // =========================================================
@@ -125,7 +121,8 @@ class UserControllerTest {
                 .email("test@example.com")
                 .build();
 
-        when(userService.getCurrentUserProfile(user))
+        // Đổi sang stub bằng UUID: user.getId()
+        when(userService.getCurrentUserProfile(user.getId()))
                 .thenReturn(response);
 
         UsernamePasswordAuthenticationToken authentication =
@@ -140,11 +137,10 @@ class UserControllerTest {
                                 .with(authentication(authentication))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.username")
-                        .value("test_user"));
+                .andExpect(jsonPath("$.data.username").value("test_user"));
 
-        verify(userService)
-                .getCurrentUserProfile(user);
+        // Verify với UUID: user.getId()
+        verify(userService).getCurrentUserProfile(user.getId());
     }
 
     // =========================================================
@@ -172,10 +168,9 @@ class UserControllerTest {
     @DisplayName("GET /api/users/profile - Service ném exception")
     void getProfile_ServiceThrowsException() throws Exception {
 
-        when(userService.getCurrentUserProfile(user))
-                .thenThrow(
-                        new RuntimeException("Unexpected error")
-                );
+        // Đổi sang stub bằng UUID: user.getId()
+        when(userService.getCurrentUserProfile(user.getId()))
+                .thenThrow(new RuntimeException("Unexpected error"));
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -190,7 +185,7 @@ class UserControllerTest {
                 )
                 .andExpect(status().isInternalServerError());
 
-        verify(userService)
-                .getCurrentUserProfile(user);
+        // Verify với UUID: user.getId()
+        verify(userService).getCurrentUserProfile(user.getId());
     }
 }
