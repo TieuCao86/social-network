@@ -4,24 +4,21 @@ import com.socialnetwork.common.exception.BusinessException;
 import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.module.post.dto.request.PostCreateRequest;
 import com.socialnetwork.module.post.dto.response.PostResponse;
-import com.socialnetwork.module.post.entity.Post;
-import com.socialnetwork.module.post.entity.PostMedia;
-import com.socialnetwork.module.post.entity.PostStatus;
+import com.socialnetwork.module.post.entity.*;
+import com.socialnetwork.module.post.entity.enums.PostStatus;
 import com.socialnetwork.module.post.mapper.PostMapper;
 import com.socialnetwork.module.post.repository.PostMediaRepository;
+import com.socialnetwork.module.post.repository.PostReactionRepository;
 import com.socialnetwork.module.post.repository.PostRepository;
 import com.socialnetwork.module.post.service.PostService;
+import com.socialnetwork.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +27,9 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final PostMediaRepository postMediaRepository;
+    private final PostReactionRepository postReactionRepository;
+    private final UserRepository userRepository;
+
     private final PostMapper postMapper;
 
     @Override

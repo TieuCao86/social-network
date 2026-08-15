@@ -1,6 +1,8 @@
 package com.socialnetwork.module.post.entity;
 
 import com.socialnetwork.common.entity.BaseEntity;
+import com.socialnetwork.module.post.entity.enums.PostStatus;
+import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -17,7 +19,7 @@ import java.util.UUID;
 public class Post extends BaseEntity {
 
     @Column(name = "author_id", nullable = false)
-    private UUID authorId; // Lưu UUID người đăng, không dùng @ManyToOne với User
+    private UUID authorId;
 
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -38,5 +40,5 @@ public class Post extends BaseEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private int likeCount = 0;
+    private int reactionCount = 0;
 }

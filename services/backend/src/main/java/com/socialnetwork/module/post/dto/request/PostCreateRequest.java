@@ -1,6 +1,6 @@
 package com.socialnetwork.module.post.dto.request;
 
-import com.socialnetwork.module.post.entity.PostVisibility;
+import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.socialnetwork.module.post.dto.request;
 
-import com.socialnetwork.module.post.entity.MediaType;
+import com.socialnetwork.module.post.entity.enums.MediaType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 

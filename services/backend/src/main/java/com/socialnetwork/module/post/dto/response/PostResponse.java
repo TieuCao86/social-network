@@ -1,12 +1,14 @@
 package com.socialnetwork.module.post.dto.response;
 
-import com.socialnetwork.module.post.entity.MediaType;
-import com.socialnetwork.module.post.entity.PostVisibility;
+import com.socialnetwork.module.post.entity.enums.MediaType;
+import com.socialnetwork.module.post.entity.enums.PostVisibility;
+import com.socialnetwork.module.post.entity.enums.ReactionType;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -22,8 +24,12 @@ public class PostResponse {
 
     private List<MediaItemResponse> mediaList;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private long totalReactions;                      // Tổng số lượt reaction
+    private ReactionType currentUserReaction;         // User hiện tại đã thả gì (LIKE/null/...)
+    private Map<ReactionType, Long> reactionSummary;
+
+    private Instant createdAt;
+    private Instant updatedAt;
 
     @Data
     @Builder

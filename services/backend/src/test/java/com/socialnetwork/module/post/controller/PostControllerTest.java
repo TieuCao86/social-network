@@ -5,9 +5,8 @@ import com.socialnetwork.common.security.CustomUserDetails;
 import com.socialnetwork.module.post.dto.request.PostCreateRequest;
 import com.socialnetwork.module.post.dto.request.PostMediaRequest;
 import com.socialnetwork.module.post.entity.Post;
-import com.socialnetwork.module.post.entity.PostMedia;
-import com.socialnetwork.module.post.entity.PostStatus;
-import com.socialnetwork.module.post.entity.PostVisibility;
+import com.socialnetwork.module.post.entity.enums.PostStatus;
+import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import com.socialnetwork.module.post.repository.PostMediaRepository;
 import com.socialnetwork.module.post.repository.PostRepository;
 import com.socialnetwork.module.user.entity.User;
@@ -98,7 +97,7 @@ class PostControllerTest {
     void createPost_Success() throws Exception {
         PostMediaRequest mediaRequest = new PostMediaRequest();
         mediaRequest.setFileId(UUID.randomUUID());
-        mediaRequest.setType(com.socialnetwork.module.post.entity.MediaType.IMAGE);
+        mediaRequest.setType(com.socialnetwork.module.post.entity.enums.MediaType.IMAGE);
 
         PostCreateRequest request = new PostCreateRequest();
         request.setContent("Xin chào mạng xã hội!");

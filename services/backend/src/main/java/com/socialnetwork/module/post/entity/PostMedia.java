@@ -1,6 +1,7 @@
 package com.socialnetwork.module.post.entity;
 
 import com.socialnetwork.common.entity.BaseEntity;
+import com.socialnetwork.module.post.entity.enums.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

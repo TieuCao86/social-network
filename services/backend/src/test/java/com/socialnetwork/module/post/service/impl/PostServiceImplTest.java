@@ -7,8 +7,9 @@ import com.socialnetwork.module.post.dto.request.PostMediaRequest;
 import com.socialnetwork.module.post.dto.response.PostResponse;
 import com.socialnetwork.module.post.entity.Post;
 import com.socialnetwork.module.post.entity.PostMedia;
-import com.socialnetwork.module.post.entity.PostStatus;
-import com.socialnetwork.module.post.entity.PostVisibility;
+import com.socialnetwork.module.post.entity.enums.MediaType;
+import com.socialnetwork.module.post.entity.enums.PostStatus;
+import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import com.socialnetwork.module.post.mapper.PostMapper;
 import com.socialnetwork.module.post.repository.PostMediaRepository;
 import com.socialnetwork.module.post.repository.PostRepository;
@@ -85,7 +86,7 @@ class PostServiceImplTest {
         void createPost_WithContentAndMedia_Success() {
             PostMediaRequest mediaReq = new PostMediaRequest();
             mediaReq.setFileId(UUID.randomUUID());
-            mediaReq.setType(com.socialnetwork.module.post.entity.MediaType.IMAGE);
+            mediaReq.setType(MediaType.IMAGE);
 
             PostCreateRequest request = new PostCreateRequest();
             request.setContent("  Bài viết mới  ");
