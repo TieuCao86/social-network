@@ -19,24 +19,18 @@ public class PostResponse {
     private UUID authorId;
     private String content;
     private PostVisibility visibility;
-    private int commentCount;
-    private int likeCount;
+
+    private long totalReactions;
+    private long commentCount;
+    private long shareCount;
+
+    private ReactionType currentUserReaction;
+
+    private List<ReactionType> topReactions;
 
     private List<MediaItemResponse> mediaList;
-
-    private long totalReactions;                      // Tổng số lượt reaction
-    private ReactionType currentUserReaction;         // User hiện tại đã thả gì (LIKE/null/...)
-    private Map<ReactionType, Long> reactionSummary;
 
     private Instant createdAt;
     private Instant updatedAt;
 
-    @Data
-    @Builder
-    public static class MediaItemResponse {
-        private UUID id;
-        private UUID fileId;
-        private MediaType type;
-        private int sortOrder;
-    }
 }

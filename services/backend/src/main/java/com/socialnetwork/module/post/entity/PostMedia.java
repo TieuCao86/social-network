@@ -30,4 +30,8 @@ public class PostMedia extends BaseEntity {
     @Builder.Default
     @Column(name = "sort_order", nullable = false)
     private int sortOrder = 0;
+
+    @Builder.Default
+    @Column(name = "reaction_count", nullable = false)
+    private long reactionCount = 0;
 }

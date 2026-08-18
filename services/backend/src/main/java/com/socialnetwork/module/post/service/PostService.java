@@ -15,5 +15,7 @@ public interface PostService {
 
     Page<PostResponse> getUserPosts(UUID authorId, Pageable pageable);
 
+    public Page<PostResponse> getPublicFeed(Pageable pageable);
+
     void deletePost(UUID postId, UUID currentUserId);
 }

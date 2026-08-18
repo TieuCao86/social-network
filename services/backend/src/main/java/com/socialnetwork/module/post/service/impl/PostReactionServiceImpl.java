@@ -35,71 +35,91 @@ public class PostReactionServiceImpl implements PostReactionService {
     private final PostReactionRepository postReactionRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Toggle reaction của user trên Post.
+     *
+     * Logic:
+     * - Chưa có reaction        -> Tạo mới (+1 total)
+     * - Đã có cùng type         -> Xóa (-1 total)
+     * - Đã có khác type         -> Đổi type (total giữ nguyên)
+     */
     @Override
     @Transactional
     public ReactionResponse toggleReaction(UUID postId, UUID currentUserId, ReactionType type) {
-        // 1. Kiểm tra bài viết tồn tại & ACTIVE
-        Post post = postRepository.findById(postId)
-                .filter(p -> p.getStatus() == PostStatus.ACTIVE)
+        // 1. Lấy Post và khóa bi quan (Pessimistic Lock)
+        Post post = postRepository.findByIdAndStatusForUpdate(postId, PostStatus.ACTIVE)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        Optional<PostReaction> existingOpt = postReactionRepository.findByPostIdAndUserId(postId, currentUserId);
-
-        boolean isReacted;
-        ReactionType activeType = null;
         ReactionType targetType = (type != null) ? type : ReactionType.LIKE;
 
-        if (existingOpt.isPresent()) {
-            PostReaction existing = existingOpt.get();
-            if (existing.getType() == targetType) {
-                // Bấm lại chính icon -> Hủy reaction
-                postReactionRepository.delete(existing);
-                isReacted = false;
-            } else {
-                // Đổi icon khác
-                existing.setType(targetType);
-                postReactionRepository.save(existing);
-                isReacted = true;
-                activeType = targetType;
-            }
-        } else {
-            // Thả reaction mới
-            PostReaction newReaction = PostReaction.builder()
+        // 2. Tìm reaction hiện tại của user
+        Optional<PostReaction> existingOpt = postReactionRepository.findByPostIdAndUserId(postId, currentUserId);
+
+        boolean reacted;
+        ReactionType currentUserReaction;
+
+        // 3. Xử lý trạng thái reaction
+        if (existingOpt.isEmpty()) {
+            PostReaction reaction = PostReaction.builder()
                     .postId(postId)
                     .userId(currentUserId)
                     .type(targetType)
                     .build();
-            postReactionRepository.save(newReaction);
-            isReacted = true;
-            activeType = targetType;
+
+            postReactionRepository.save(reaction);
+            post.setReactionCount(post.getReactionCount() + 1);
+
+            reacted = true;
+            currentUserReaction = targetType;
+        } else {
+            PostReaction existing = existingOpt.get();
+
+            if (existing.getType() == targetType) {
+                // Bấm lại cùng type -> Xóa
+                postReactionRepository.delete(existing);
+                post.setReactionCount(Math.max(0, post.getReactionCount() - 1));
+
+                reacted = false;
+                currentUserReaction = null;
+            } else {
+                // Bấm khác type -> Cập nhật type
+                existing.setType(targetType);
+                postReactionRepository.save(existing);
+
+                reacted = true;
+                currentUserReaction = targetType;
+            }
         }
 
-        // 2. Thống kê chi tiết
+        // 4. Tổng hợp reaction summary theo type
         List<PostReactionRepository.ReactionCountProjection> countList =
                 postReactionRepository.countReactionsByPostIdGroupedByType(postId);
 
         Map<ReactionType, Long> reactionCounts = new EnumMap<>(ReactionType.class);
-        long total = 0;
         for (var item : countList) {
             reactionCounts.put(item.getType(), item.getCount());
-            total += item.getCount();
         }
 
         return ReactionResponse.builder()
-                .reacted(isReacted)
-                .currentUserReaction(activeType)
-                .totalReactions(total)
+                .reacted(reacted)
+                .currentUserReaction(currentUserReaction)
+                .totalReactions(post.getReactionCount())
                 .reactionCounts(reactionCounts)
                 .build();
     }
 
+    /**
+     * Lấy danh sách user đã reaction Post (hỗ trợ phân trang và lọc theo type).
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<ReactionUserResponse> getPostReactions(UUID postId, ReactionType type, Pageable pageable) {
-        if (!postRepository.existsById(postId)) {
+        // 1. Kiểm tra Post tồn tại và ACTIVE
+        if (!postRepository.existsByIdAndStatus(postId, PostStatus.ACTIVE)) {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
         }
 
+        // 2. Query reactions
         Page<PostReaction> reactionsPage = (type == null)
                 ? postReactionRepository.findByPostIdOrderByCreatedAtDesc(postId, pageable)
                 : postReactionRepository.findByPostIdAndTypeOrderByCreatedAtDesc(postId, type, pageable);
@@ -108,6 +128,7 @@ public class PostReactionServiceImpl implements PostReactionService {
             return Page.empty(pageable);
         }
 
+        // 3. Batch load User để tránh lỗi N+1 query
         List<UUID> userIds = reactionsPage.getContent().stream()
                 .map(PostReaction::getUserId)
                 .distinct()
@@ -116,6 +137,7 @@ public class PostReactionServiceImpl implements PostReactionService {
         Map<UUID, User> userMap = userRepository.findAllById(userIds).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
+        // 4. Map DTO
         return reactionsPage.map(reaction -> {
             User user = userMap.get(reaction.getUserId());
             return ReactionUserResponse.builder()

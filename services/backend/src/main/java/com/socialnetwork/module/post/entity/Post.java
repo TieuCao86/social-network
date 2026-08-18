@@ -35,10 +35,10 @@ public class Post extends BaseEntity {
     private PostStatus status = PostStatus.ACTIVE;
 
     @Builder.Default
-    @Column(nullable = false)
-    private int commentCount = 0;
+    @Column(name = "comment_count", nullable = false)
+    private long commentCount = 0;
 
     @Builder.Default
-    @Column(nullable = false)
-    private int reactionCount = 0;
+    @Column(name = "reaction_count", nullable = false)
+    private long reactionCount = 0;
 }
