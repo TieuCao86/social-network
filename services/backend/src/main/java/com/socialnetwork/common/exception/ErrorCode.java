@@ -61,8 +61,8 @@ public enum ErrorCode {
     ),
 
     // =======================================================
-// User
-// =======================================================
+    // User
+    // =======================================================
 
     USER_NOT_FOUND(
             "USER_001",
@@ -104,6 +104,70 @@ public enum ErrorCode {
             "USER_007",
             "Email hoặc số điện thoại phải được cung cấp.",
             HttpStatus.BAD_REQUEST
+    ),
+
+    // =======================================================
+    // Relationship - Friendship
+    // =======================================================
+
+    CANNOT_FRIEND_SELF(
+            "RELATIONSHIP_001",
+            "Không thể gửi lời mời kết bạn cho chính mình.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    FRIEND_REQUEST_ALREADY_SENT(
+            "RELATIONSHIP_002",
+            "Bạn đã gửi lời mời kết bạn trước đó.",
+            HttpStatus.CONFLICT
+    ),
+
+    FRIEND_REQUEST_NOT_FOUND(
+            "RELATIONSHIP_003",
+            "Không tìm thấy lời mời kết bạn.",
+            HttpStatus.NOT_FOUND
+    ),
+
+    INVALID_FRIEND_REQUEST_STATUS(
+            "RELATIONSHIP_004",
+            "Lời mời kết bạn không hợp lệ.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    ALREADY_FRIENDS(
+            "RELATIONSHIP_005",
+            "Hai người đã là bạn bè.",
+            HttpStatus.CONFLICT
+    ),
+
+    FRIENDSHIP_NOT_FOUND(
+            "RELATIONSHIP_006",
+            "Không tìm thấy quan hệ bạn bè.",
+            HttpStatus.NOT_FOUND
+    ),
+
+    NOT_FRIENDS(
+            "RELATIONSHIP_007",
+            "Hai người không phải là bạn bè.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    FRIEND_REQUEST_ALREADY_RECEIVED(
+            "RELATIONSHIP_010",
+            "Người dùng này đã gửi lời mời kết bạn cho bạn.",
+            HttpStatus.CONFLICT
+    ),
+
+    BLOCKING_USER(
+            "RELATIONSHIP_008",
+            "Bạn đã chặn người dùng này.",
+            HttpStatus.FORBIDDEN
+    ),
+
+    BLOCKED_BY_USER(
+            "RELATIONSHIP_009",
+            "Bạn đã bị người dùng này chặn.",
+            HttpStatus.FORBIDDEN
     ),
 
     // =======================================================
