@@ -170,6 +170,24 @@ public enum ErrorCode {
             HttpStatus.FORBIDDEN
     ),
 
+    ALREADY_FOLLOWING(
+            "RELATIONSHIP_001",
+            "Bạn đã theo dõi người dùng này.",
+            HttpStatus.CONFLICT
+    ),
+
+    NOT_FOLLOWING(
+            "RELATIONSHIP_002",
+            "Bạn chưa theo dõi người dùng này.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    CANNOT_FOLLOW_SELF(
+            "RELATIONSHIP_003",
+            "Không thể theo dõi chính mình.",
+            HttpStatus.BAD_REQUEST
+    ),
+
     // =======================================================
     // Authentication
     // =======================================================
