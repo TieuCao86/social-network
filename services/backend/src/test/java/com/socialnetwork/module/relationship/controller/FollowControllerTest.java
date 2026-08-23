@@ -126,6 +126,21 @@ class FollowControllerTest {
                                 .with(user(userADetails))
                 )
                 .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("RELATIONSHIP_003"))
+                .andExpect(jsonPath("$.message")
+                        .value("Không thể theo dõi chính mình."));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/relationships/follows/{userId} - Không thể unfollow chính mình")
+    void unfollow_Self_ShouldReturn400() throws Exception {
+
+        mockMvc.perform(
+                        delete("/api/relationships/follows/{userId}", userA.getId())
+                                .with(user(userADetails))
+                )
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
     }
 

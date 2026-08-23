@@ -20,8 +20,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -120,7 +118,7 @@ class FriendshipControllerTest {
                                 .with(user(user1Details))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.requesterId")
                         .value(user1.getId().toString()))
@@ -133,7 +131,10 @@ class FriendshipControllerTest {
                 .findBetween(user1.getId(), user2.getId())
                 .orElseThrow();
 
-        assertEquals(FriendshipStatus.PENDING, friendship.getStatus());
+        assertEquals(
+                FriendshipStatus.PENDING,
+                friendship.getStatus()
+        );
     }
 
     // =======================================================

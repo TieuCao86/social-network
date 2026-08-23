@@ -41,11 +41,13 @@ class FollowServiceImplTest {
 
     private UUID currentUserId;
     private UUID targetUserId;
+
     private Follow sampleFollow;
     private FollowResponse sampleResponse;
 
     @BeforeEach
     void setUp() {
+
         currentUserId = UUID.randomUUID();
         targetUserId = UUID.randomUUID();
 
@@ -61,7 +63,7 @@ class FollowServiceImplTest {
     }
 
     // ============================================================
-    // 1. FOLLOW TESTS
+    // 1. FOLLOW
     // ============================================================
 
     @Nested
@@ -69,52 +71,109 @@ class FollowServiceImplTest {
     class FollowTests {
 
         @Test
-        @DisplayName("Follow thành công khi input hợp lệ và chưa từng follow")
+        @DisplayName("Follow thành công")
         void follow_Success() {
-            when(followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId))
+
+            when(followRepository
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    ))
                     .thenReturn(false);
+
             when(followRepository.save(any(Follow.class)))
                     .thenReturn(sampleFollow);
+
             when(followMapper.toResponse(sampleFollow))
                     .thenReturn(sampleResponse);
 
-            FollowResponse result = followService.follow(currentUserId, targetUserId);
+            FollowResponse result =
+                    followService.follow(
+                            currentUserId,
+                            targetUserId
+                    );
 
             assertNotNull(result);
-            assertEquals(sampleResponse.getId(), result.getId());
-            verify(followRepository, times(1)).save(any(Follow.class));
-        }
-
-        @Test
-        @DisplayName("Ném lỗi CANNOT_FOLLOW_SELF khi tự follow chính mình")
-        void follow_Self_ThrowsException() {
-            BusinessException ex = assertThrows(
-                    BusinessException.class,
-                    () -> followService.follow(currentUserId, currentUserId)
+            assertEquals(
+                    sampleResponse.getId(),
+                    result.getId()
             );
 
-            assertEquals(ErrorCode.CANNOT_FOLLOW_SELF, ex.getErrorCode());
-            verify(followRepository, never()).save(any());
+            verify(followRepository)
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    );
+
+            verify(followRepository)
+                    .save(any(Follow.class));
+
+            verify(followMapper)
+                    .toResponse(sampleFollow);
         }
 
         @Test
-        @DisplayName("Ném lỗi ALREADY_FOLLOWING khi đã follow trước đó")
+        @DisplayName("Không được tự follow chính mình")
+        void follow_Self_ThrowsException() {
+
+            BusinessException exception =
+                    assertThrows(
+                            BusinessException.class,
+                            () -> followService.follow(
+                                    currentUserId,
+                                    currentUserId
+                            )
+                    );
+
+            assertEquals(
+                    ErrorCode.CANNOT_FOLLOW_SELF,
+                    exception.getErrorCode()
+            );
+
+            verifyNoInteractions(followRepository);
+            verifyNoInteractions(followMapper);
+        }
+
+        @Test
+        @DisplayName("Đã follow trước đó")
         void follow_AlreadyFollowing_ThrowsException() {
-            when(followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId))
+
+            when(followRepository
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    ))
                     .thenReturn(true);
 
-            BusinessException ex = assertThrows(
-                    BusinessException.class,
-                    () -> followService.follow(currentUserId, targetUserId)
+            BusinessException exception =
+                    assertThrows(
+                            BusinessException.class,
+                            () -> followService.follow(
+                                    currentUserId,
+                                    targetUserId
+                            )
+                    );
+
+            assertEquals(
+                    ErrorCode.ALREADY_FOLLOWING,
+                    exception.getErrorCode()
             );
 
-            assertEquals(ErrorCode.ALREADY_FOLLOWING, ex.getErrorCode());
-            verify(followRepository, never()).save(any());
+            verify(followRepository)
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    );
+
+            verify(followRepository, never())
+                    .save(any());
+
+            verifyNoInteractions(followMapper);
         }
     }
 
     // ============================================================
-    // 2. UNFOLLOW TESTS
+    // 2. UNFOLLOW
     // ============================================================
 
     @Nested
@@ -122,46 +181,86 @@ class FollowServiceImplTest {
     class UnfollowTests {
 
         @Test
-        @DisplayName("Unfollow thành công khi đang follow")
+        @DisplayName("Unfollow thành công")
         void unfollow_Success() {
-            when(followRepository.findByFollowerIdAndFollowingId(currentUserId, targetUserId))
+
+            when(followRepository
+                    .findByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    ))
                     .thenReturn(Optional.of(sampleFollow));
-            doNothing().when(followRepository).delete(sampleFollow);
 
-            assertDoesNotThrow(() -> followService.unfollow(currentUserId, targetUserId));
-            verify(followRepository, times(1)).delete(sampleFollow);
-        }
-
-        @Test
-        @DisplayName("Ném lỗi CANNOT_FOLLOW_SELF khi tự unfollow chính mình")
-        void unfollow_Self_ThrowsException() {
-            BusinessException ex = assertThrows(
-                    BusinessException.class,
-                    () -> followService.unfollow(currentUserId, currentUserId)
+            assertDoesNotThrow(
+                    () -> followService.unfollow(
+                            currentUserId,
+                            targetUserId
+                    )
             );
 
-            assertEquals(ErrorCode.CANNOT_FOLLOW_SELF, ex.getErrorCode());
-            verify(followRepository, never()).delete(any());
+            verify(followRepository)
+                    .findByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    );
+
+            verify(followRepository)
+                    .delete(sampleFollow);
         }
 
         @Test
-        @DisplayName("Ném lỗi NOT_FOLLOWING khi chưa follow đối tượng")
+        @DisplayName("Không được tự unfollow chính mình")
+        void unfollow_Self_ThrowsException() {
+
+            BusinessException exception =
+                    assertThrows(
+                            BusinessException.class,
+                            () -> followService.unfollow(
+                                    currentUserId,
+                                    currentUserId
+                            )
+                    );
+
+            assertEquals(
+                    ErrorCode.CANNOT_FOLLOW_SELF,
+                    exception.getErrorCode()
+            );
+
+            verifyNoInteractions(followRepository);
+        }
+
+        @Test
+        @DisplayName("Chưa follow người dùng")
         void unfollow_NotFollowing_ThrowsException() {
-            when(followRepository.findByFollowerIdAndFollowingId(currentUserId, targetUserId))
+
+            when(followRepository
+                    .findByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    ))
                     .thenReturn(Optional.empty());
 
-            BusinessException ex = assertThrows(
-                    BusinessException.class,
-                    () -> followService.unfollow(currentUserId, targetUserId)
+            BusinessException exception =
+                    assertThrows(
+                            BusinessException.class,
+                            () -> followService.unfollow(
+                                    currentUserId,
+                                    targetUserId
+                            )
+                    );
+
+            assertEquals(
+                    ErrorCode.NOT_FOLLOWING,
+                    exception.getErrorCode()
             );
 
-            assertEquals(ErrorCode.NOT_FOLLOWING, ex.getErrorCode());
-            verify(followRepository, never()).delete(any());
+            verify(followRepository, never())
+                    .delete(any());
         }
     }
 
     // ============================================================
-    // 3. IS FOLLOWING TESTS
+    // 3. IS FOLLOWING
     // ============================================================
 
     @Nested
@@ -169,93 +268,352 @@ class FollowServiceImplTest {
     class IsFollowingTests {
 
         @Test
-        @DisplayName("Trả về true khi đang follow")
+        @DisplayName("Đang follow -> true")
         void isFollowing_True() {
-            when(followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId))
+
+            when(followRepository
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    ))
                     .thenReturn(true);
 
-            assertTrue(followService.isFollowing(currentUserId, targetUserId));
-            verify(followRepository, times(1)).existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
+            boolean result =
+                    followService.isFollowing(
+                            currentUserId,
+                            targetUserId
+                    );
+
+            assertTrue(result);
+
+            verify(followRepository)
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    );
         }
 
         @Test
-        @DisplayName("Trả về false khi không follow")
+        @DisplayName("Không follow -> false")
         void isFollowing_False() {
-            when(followRepository.existsByFollowerIdAndFollowingId(currentUserId, targetUserId))
+
+            when(followRepository
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    ))
                     .thenReturn(false);
 
-            assertFalse(followService.isFollowing(currentUserId, targetUserId));
-            verify(followRepository, times(1)).existsByFollowerIdAndFollowingId(currentUserId, targetUserId);
+            boolean result =
+                    followService.isFollowing(
+                            currentUserId,
+                            targetUserId
+                    );
+
+            assertFalse(result);
+
+            verify(followRepository)
+                    .existsByFollowerIdAndFollowingId(
+                            currentUserId,
+                            targetUserId
+                    );
         }
 
         @Test
-        @DisplayName("Trả về false ngay lập tức nếu kiểm tra với chính mình (không query DB)")
-        void isFollowing_Self_ReturnsFalseWithoutQuerying() {
-            assertFalse(followService.isFollowing(currentUserId, currentUserId));
-            verify(followRepository, never()).existsByFollowerIdAndFollowingId(any(), any());
+        @DisplayName("Kiểm tra chính mình -> false và không query DB")
+        void isFollowing_Self_ReturnsFalse() {
+
+            boolean result =
+                    followService.isFollowing(
+                            currentUserId,
+                            currentUserId
+                    );
+
+            assertFalse(result);
+
+            verifyNoInteractions(followRepository);
         }
     }
 
     // ============================================================
-    // 4. PAGINATION & COUNT TESTS
+    // 4. GET FOLLOWING
     // ============================================================
 
     @Nested
-    @DisplayName("Pagination & Count Queries")
-    class QueryTests {
+    @DisplayName("getFollowing()")
+    class GetFollowingTests {
 
         @Test
-        @DisplayName("Lấy danh sách following có phân trang")
+        @DisplayName("Lấy danh sách following thành công")
         void getFollowing_Success() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Follow> followPage = new PageImpl<>(List.of(sampleFollow));
 
-            when(followRepository.findByFollowerId(currentUserId, pageable)).thenReturn(followPage);
-            when(followMapper.toResponse(sampleFollow)).thenReturn(sampleResponse);
+            Pageable pageable =
+                    PageRequest.of(0, 10);
 
-            Page<FollowResponse> result = followService.getFollowing(currentUserId, pageable);
+            Page<Follow> page =
+                    new PageImpl<>(
+                            List.of(sampleFollow),
+                            pageable,
+                            1
+                    );
+
+            when(followRepository
+                    .findByFollowerId(
+                            currentUserId,
+                            pageable
+                    ))
+                    .thenReturn(page);
+
+            when(followMapper.toResponse(sampleFollow))
+                    .thenReturn(sampleResponse);
+
+            Page<FollowResponse> result =
+                    followService.getFollowing(
+                            currentUserId,
+                            pageable
+                    );
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
-            verify(followRepository, times(1)).findByFollowerId(currentUserId, pageable);
+            assertEquals(
+                    sampleResponse.getId(),
+                    result.getContent().get(0).getId()
+            );
+
+            verify(followRepository)
+                    .findByFollowerId(
+                            currentUserId,
+                            pageable
+                    );
+
+            verify(followMapper)
+                    .toResponse(sampleFollow);
         }
 
         @Test
-        @DisplayName("Lấy danh sách followers có phân trang")
+        @DisplayName("Không có following -> page rỗng")
+        void getFollowing_Empty() {
+
+            Pageable pageable =
+                    PageRequest.of(0, 10);
+
+            Page<Follow> page =
+                    new PageImpl<>(
+                            List.of(),
+                            pageable,
+                            0
+                    );
+
+            when(followRepository
+                    .findByFollowerId(
+                            currentUserId,
+                            pageable
+                    ))
+                    .thenReturn(page);
+
+            Page<FollowResponse> result =
+                    followService.getFollowing(
+                            currentUserId,
+                            pageable
+                    );
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            assertEquals(0, result.getTotalElements());
+
+            verify(followRepository)
+                    .findByFollowerId(
+                            currentUserId,
+                            pageable
+                    );
+
+            verifyNoInteractions(followMapper);
+        }
+    }
+
+    // ============================================================
+    // 5. GET FOLLOWERS
+    // ============================================================
+
+    @Nested
+    @DisplayName("getFollowers()")
+    class GetFollowersTests {
+
+        @Test
+        @DisplayName("Lấy danh sách followers thành công")
         void getFollowers_Success() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Follow> followPage = new PageImpl<>(List.of(sampleFollow));
 
-            when(followRepository.findByFollowingId(currentUserId, pageable)).thenReturn(followPage);
-            when(followMapper.toResponse(sampleFollow)).thenReturn(sampleResponse);
+            Pageable pageable =
+                    PageRequest.of(0, 10);
 
-            Page<FollowResponse> result = followService.getFollowers(currentUserId, pageable);
+            Page<Follow> page =
+                    new PageImpl<>(
+                            List.of(sampleFollow),
+                            pageable,
+                            1
+                    );
+
+            when(followRepository
+                    .findByFollowingId(
+                            currentUserId,
+                            pageable
+                    ))
+                    .thenReturn(page);
+
+            when(followMapper.toResponse(sampleFollow))
+                    .thenReturn(sampleResponse);
+
+            Page<FollowResponse> result =
+                    followService.getFollowers(
+                            currentUserId,
+                            pageable
+                    );
 
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
-            verify(followRepository, times(1)).findByFollowingId(currentUserId, pageable);
+
+            verify(followRepository)
+                    .findByFollowingId(
+                            currentUserId,
+                            pageable
+                    );
+
+            verify(followMapper)
+                    .toResponse(sampleFollow);
         }
 
         @Test
-        @DisplayName("Đếm số lượng following")
+        @DisplayName("Không có followers -> page rỗng")
+        void getFollowers_Empty() {
+
+            Pageable pageable =
+                    PageRequest.of(0, 10);
+
+            Page<Follow> page =
+                    new PageImpl<>(
+                            List.of(),
+                            pageable,
+                            0
+                    );
+
+            when(followRepository
+                    .findByFollowingId(
+                            currentUserId,
+                            pageable
+                    ))
+                    .thenReturn(page);
+
+            Page<FollowResponse> result =
+                    followService.getFollowers(
+                            currentUserId,
+                            pageable
+                    );
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            assertEquals(0, result.getTotalElements());
+
+            verify(followRepository)
+                    .findByFollowingId(
+                            currentUserId,
+                            pageable
+                    );
+
+            verifyNoInteractions(followMapper);
+        }
+    }
+
+    // ============================================================
+    // 6. COUNT FOLLOWING
+    // ============================================================
+
+    @Nested
+    @DisplayName("countFollowing()")
+    class CountFollowingTests {
+
+        @Test
+        @DisplayName("Đếm following thành công")
         void countFollowing_Success() {
-            when(followRepository.countByFollowerId(currentUserId)).thenReturn(15L);
 
-            long count = followService.countFollowing(currentUserId);
+            when(followRepository
+                    .countByFollowerId(currentUserId))
+                    .thenReturn(15L);
 
-            assertEquals(15L, count);
-            verify(followRepository, times(1)).countByFollowerId(currentUserId);
+            long result =
+                    followService.countFollowing(
+                            currentUserId
+                    );
+
+            assertEquals(15L, result);
+
+            verify(followRepository)
+                    .countByFollowerId(currentUserId);
         }
 
         @Test
-        @DisplayName("Đếm số lượng followers")
+        @DisplayName("Không có following -> 0")
+        void countFollowing_Zero() {
+
+            when(followRepository
+                    .countByFollowerId(currentUserId))
+                    .thenReturn(0L);
+
+            long result =
+                    followService.countFollowing(
+                            currentUserId
+                    );
+
+            assertEquals(0L, result);
+
+            verify(followRepository)
+                    .countByFollowerId(currentUserId);
+        }
+    }
+
+    // ============================================================
+    // 7. COUNT FOLLOWERS
+    // ============================================================
+
+    @Nested
+    @DisplayName("countFollowers()")
+    class CountFollowersTests {
+
+        @Test
+        @DisplayName("Đếm followers thành công")
         void countFollowers_Success() {
-            when(followRepository.countByFollowingId(currentUserId)).thenReturn(25L);
 
-            long count = followService.countFollowers(currentUserId);
+            when(followRepository
+                    .countByFollowingId(currentUserId))
+                    .thenReturn(25L);
 
-            assertEquals(25L, count);
-            verify(followRepository, times(1)).countByFollowingId(currentUserId);
+            long result =
+                    followService.countFollowers(
+                            currentUserId
+                    );
+
+            assertEquals(25L, result);
+
+            verify(followRepository)
+                    .countByFollowingId(currentUserId);
+        }
+
+        @Test
+        @DisplayName("Không có followers -> 0")
+        void countFollowers_Zero() {
+
+            when(followRepository
+                    .countByFollowingId(currentUserId))
+                    .thenReturn(0L);
+
+            long result =
+                    followService.countFollowers(
+                            currentUserId
+                    );
+
+            assertEquals(0L, result);
+
+            verify(followRepository)
+                    .countByFollowingId(currentUserId);
         }
     }
 }

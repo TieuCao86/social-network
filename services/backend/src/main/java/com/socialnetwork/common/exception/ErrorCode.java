@@ -188,6 +188,12 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST
     ),
 
+    CANNOT_VIEW_OWN_RELATIONSHIP(
+            "RELATIONSHIP_001",
+            "Không thể xem trạng thái quan hệ với chính mình.",
+            HttpStatus.BAD_REQUEST
+    ),
+
     // =======================================================
     // Authentication
     // =======================================================

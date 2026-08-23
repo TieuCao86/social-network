@@ -7,6 +7,7 @@ import com.socialnetwork.module.relationship.entity.Follow;
 import com.socialnetwork.module.relationship.mapper.FollowMapper;
 import com.socialnetwork.module.relationship.repository.FollowRepository;
 import com.socialnetwork.module.relationship.service.FollowService;
+import com.socialnetwork.module.relationship.util.RelationshipValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,13 +34,19 @@ public class FollowServiceImpl implements FollowService {
             UUID currentUserId,
             UUID targetUserId
     ) {
-        validateNotSelf(currentUserId, targetUserId);
+        RelationshipValidator.validateNotSelf(
+                currentUserId,
+                targetUserId,
+                ErrorCode.CANNOT_FOLLOW_SELF
+        );
 
         if (followRepository.existsByFollowerIdAndFollowingId(
                 currentUserId,
                 targetUserId
         )) {
-            throw new BusinessException(ErrorCode.ALREADY_FOLLOWING);
+            throw new BusinessException(
+                    ErrorCode.ALREADY_FOLLOWING
+            );
         }
 
         Follow follow = Follow.builder()
@@ -62,7 +69,11 @@ public class FollowServiceImpl implements FollowService {
             UUID currentUserId,
             UUID targetUserId
     ) {
-        validateNotSelf(currentUserId, targetUserId);
+        RelationshipValidator.validateNotSelf(
+                currentUserId,
+                targetUserId,
+                ErrorCode.CANNOT_FOLLOW_SELF
+        );
 
         Follow follow = followRepository
                 .findByFollowerIdAndFollowingId(
@@ -70,7 +81,9 @@ public class FollowServiceImpl implements FollowService {
                         targetUserId
                 )
                 .orElseThrow(() ->
-                        new BusinessException(ErrorCode.NOT_FOLLOWING)
+                        new BusinessException(
+                                ErrorCode.NOT_FOLLOWING
+                        )
                 );
 
         followRepository.delete(follow);
@@ -105,7 +118,10 @@ public class FollowServiceImpl implements FollowService {
             Pageable pageable
     ) {
         return followRepository
-                .findByFollowerId(currentUserId, pageable)
+                .findByFollowerId(
+                        currentUserId,
+                        pageable
+                )
                 .map(followMapper::toResponse);
     }
 
@@ -119,7 +135,10 @@ public class FollowServiceImpl implements FollowService {
             Pageable pageable
     ) {
         return followRepository
-                .findByFollowingId(currentUserId, pageable)
+                .findByFollowingId(
+                        currentUserId,
+                        pageable
+                )
                 .map(followMapper::toResponse);
     }
 
@@ -139,20 +158,5 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public long countFollowers(UUID userId) {
         return followRepository.countByFollowingId(userId);
-    }
-
-    // ============================================================
-    // PRIVATE
-    // ============================================================
-
-    private void validateNotSelf(
-            UUID currentUserId,
-            UUID targetUserId
-    ) {
-        if (currentUserId.equals(targetUserId)) {
-            throw new BusinessException(
-                    ErrorCode.CANNOT_FOLLOW_SELF
-            );
-        }
     }
 }

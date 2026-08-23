@@ -20,6 +20,11 @@ public interface FollowRepository extends JpaRepository<Follow, UUID> {
 
     boolean existsByFollowerIdAndFollowingId(UUID followerId, UUID followingId);
 
+    void deleteByFollowerIdAndFollowingId(
+            UUID followerId,
+            UUID followingId
+    );
+
     // ============================================================
     // FOLLOWING (Những người mà user đang follow)
     // ============================================================

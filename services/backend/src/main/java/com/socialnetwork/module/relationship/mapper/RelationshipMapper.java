@@ -1,6 +1,7 @@
 package com.socialnetwork.module.relationship.mapper;
 
 import com.socialnetwork.module.relationship.dto.response.RelationshipResponse;
+import com.socialnetwork.module.relationship.entity.Follow;
 import com.socialnetwork.module.relationship.entity.Friendship;
 import com.socialnetwork.module.relationship.entity.enums.RelationshipStatus;
 import org.mapstruct.Mapper;
@@ -18,36 +19,69 @@ public interface RelationshipMapper {
     @Mapping(target = "userId", source = "targetUserId")
     @Mapping(
             target = "relationshipStatus",
-            expression = "java(toRelationshipStatus(currentUserId, friendship))"
+            expression = "java(toRelationshipStatus(currentUserId, friendship, currentUserFollow, targetUserFollow))"
     )
     RelationshipResponse toResponse(
             UUID currentUserId,
             UUID targetUserId,
-            Friendship friendship
+            Friendship friendship,
+            Follow currentUserFollow,
+            Follow targetUserFollow
     );
 
     default RelationshipStatus toRelationshipStatus(
             UUID currentUserId,
-            Friendship friendship
+            Friendship friendship,
+            Follow currentUserFollow,
+            Follow targetUserFollow
     ) {
-        if (friendship == null || friendship.getStatus() == null) {
-            return RelationshipStatus.NONE;
+
+        // ============================================================
+        // 1. FRIENDSHIP ƯU TIÊN
+        // ============================================================
+
+        if (friendship != null) {
+
+            return switch (friendship.getStatus()) {
+
+                case ACCEPTED ->
+                        RelationshipStatus.FRIENDS;
+
+                case PENDING ->
+                        friendship.getRequesterId().equals(currentUserId)
+                                ? RelationshipStatus.REQUEST_SENT
+                                : RelationshipStatus.REQUEST_RECEIVED;
+
+                case BLOCKED ->
+                        friendship.getRequesterId().equals(currentUserId)
+                                ? RelationshipStatus.BLOCKING
+                                : RelationshipStatus.BLOCKED_BY;
+            };
         }
 
-        return switch (friendship.getStatus()) {
+        // ============================================================
+        // 2. FOLLOW
+        // ============================================================
 
-            case ACCEPTED ->
-                    RelationshipStatus.FRIENDS;
+        boolean following = currentUserFollow != null;
+        boolean followedBy = targetUserFollow != null;
 
-            case PENDING ->
-                    friendship.getRequesterId().equals(currentUserId)
-                            ? RelationshipStatus.REQUEST_SENT
-                            : RelationshipStatus.REQUEST_RECEIVED;
+        if (following && followedBy) {
+            return RelationshipStatus.FOLLOWING_EACH_OTHER;
+        }
 
-            case BLOCKED ->
-                    friendship.getRequesterId().equals(currentUserId)
-                            ? RelationshipStatus.BLOCKING
-                            : RelationshipStatus.BLOCKED_BY;
-        };
+        if (following) {
+            return RelationshipStatus.FOLLOWING;
+        }
+
+        if (followedBy) {
+            return RelationshipStatus.FOLLOWED_BY;
+        }
+
+        // ============================================================
+        // 3. NONE
+        // ============================================================
+
+        return RelationshipStatus.NONE;
     }
 }

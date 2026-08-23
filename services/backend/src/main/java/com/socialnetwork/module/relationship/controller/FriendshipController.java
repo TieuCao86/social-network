@@ -3,7 +3,6 @@ package com.socialnetwork.module.relationship.controller;
 import com.socialnetwork.common.response.ApiResponse;
 import com.socialnetwork.common.security.CustomUserDetails;
 import com.socialnetwork.module.relationship.dto.response.FriendshipResponse;
-import com.socialnetwork.module.relationship.dto.response.RelationshipResponse;
 import com.socialnetwork.module.relationship.service.FriendshipService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,24 +20,23 @@ public class FriendshipController {
 
     private final FriendshipService friendshipService;
 
-    // ============================================================
-    // FRIEND REQUEST
-    // ============================================================
-
     /**
      * Gửi lời mời kết bạn
-     * POST /api/relationships/friends/{userId}
+     * POST /api/relationships/friends/{targetUserId}
      */
-    @PostMapping("/friends/{userId}")
+    @PostMapping("/friends/{targetUserId}")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<FriendshipResponse> sendRequest(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID userId
+            @PathVariable UUID targetUserId
     ) {
         UUID currentUserId = userDetails.getUser().getId();
 
         FriendshipResponse data =
-                friendshipService.sendRequest(currentUserId, userId);
+                friendshipService.sendRequest(
+                        currentUserId,
+                        targetUserId
+                );
 
         return ApiResponse.success(
                 "Gửi lời mời kết bạn thành công.",
@@ -48,18 +46,21 @@ public class FriendshipController {
 
     /**
      * Chấp nhận lời mời kết bạn
-     * POST /api/relationships/friends/{userId}/accept
+     * POST /api/relationships/friends/{requesterId}/accept
      */
-    @PostMapping("/friends/{userId}/accept")
+    @PostMapping("/friends/{requesterId}/accept")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<FriendshipResponse> acceptRequest(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID userId
+            @PathVariable UUID requesterId
     ) {
         UUID currentUserId = userDetails.getUser().getId();
 
         FriendshipResponse data =
-                friendshipService.acceptRequest(currentUserId, userId);
+                friendshipService.acceptRequest(
+                        currentUserId,
+                        requesterId
+                );
 
         return ApiResponse.success(
                 "Đã chấp nhận lời mời kết bạn.",
@@ -69,19 +70,19 @@ public class FriendshipController {
 
     /**
      * Xóa lời mời kết bạn nhận được
-     * DELETE /api/relationships/friends/{userId}/request
+     * DELETE /api/relationships/friends/{requesterId}/request
      */
-    @DeleteMapping("/friends/{userId}/request")
+    @DeleteMapping("/friends/{requesterId}/request")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> rejectRequest(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID userId
+            @PathVariable UUID requesterId
     ) {
         UUID currentUserId = userDetails.getUser().getId();
 
         friendshipService.rejectRequest(
                 currentUserId,
-                userId
+                requesterId
         );
 
         return ApiResponse.success(
@@ -91,19 +92,19 @@ public class FriendshipController {
 
     /**
      * Hủy lời mời kết bạn đã gửi
-     * DELETE /api/relationships/friends/{userId}/cancel
+     * DELETE /api/relationships/friends/{targetUserId}/cancel
      */
-    @DeleteMapping("/friends/{userId}/cancel")
+    @DeleteMapping("/friends/{targetUserId}/cancel")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> cancelRequest(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID userId
+            @PathVariable UUID targetUserId
     ) {
         UUID currentUserId = userDetails.getUser().getId();
 
         friendshipService.cancelRequest(
                 currentUserId,
-                userId
+                targetUserId
         );
 
         return ApiResponse.success(
@@ -111,60 +112,27 @@ public class FriendshipController {
         );
     }
 
-    // ============================================================
-    // FRIENDSHIP
-    // ============================================================
-
     /**
      * Hủy kết bạn
-     * DELETE /api/relationships/friends/{userId}
+     * DELETE /api/relationships/friends/{friendId}
      */
-    @DeleteMapping("/friends/{userId}")
+    @DeleteMapping("/friends/{friendId}")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> unfriend(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID userId
+            @PathVariable UUID friendId
     ) {
         UUID currentUserId = userDetails.getUser().getId();
 
         friendshipService.unfriend(
                 currentUserId,
-                userId
+                friendId
         );
 
         return ApiResponse.success(
                 "Đã hủy kết bạn."
         );
     }
-
-    // ============================================================
-    // RELATIONSHIP
-    // ============================================================
-
-    /**
-     * Lấy trạng thái quan hệ với một user
-     * GET /api/relationships/{userId}
-     */
-    @GetMapping("/{userId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ApiResponse<RelationshipResponse> getRelationship(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable UUID userId
-    ) {
-        UUID currentUserId = userDetails.getUser().getId();
-
-        RelationshipResponse data =
-                friendshipService.getRelationship(
-                        currentUserId,
-                        userId
-                );
-
-        return ApiResponse.success(data);
-    }
-
-    // ============================================================
-    // FRIEND LIST
-    // ============================================================
 
     /**
      * Lấy danh sách bạn bè
@@ -186,6 +154,7 @@ public class FriendshipController {
 
         return ApiResponse.success(data);
     }
+
 
     /**
      * Lấy lời mời kết bạn nhận được
@@ -240,7 +209,8 @@ public class FriendshipController {
     ) {
         UUID currentUserId = userDetails.getUser().getId();
 
-        long data = friendshipService.countFriends(currentUserId);
+        long data =
+                friendshipService.countFriends(currentUserId);
 
         return ApiResponse.success(data);
     }
