@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     // =======================================================
-    // Common
+    // 1. Common / General Errors (COMMON_xxx)
     // =======================================================
 
     INTERNAL_SERVER_ERROR(
@@ -61,7 +61,63 @@ public enum ErrorCode {
     ),
 
     // =======================================================
-    // User
+    // 2. Authentication (AUTH_xxx)
+    // =======================================================
+
+    INVALID_CREDENTIALS(
+            "AUTH_001",
+            "Email hoặc mật khẩu không chính xác.",
+            HttpStatus.UNAUTHORIZED
+    ),
+
+    INVALID_TOKEN(
+            "AUTH_002",
+            "Token không hợp lệ.",
+            HttpStatus.UNAUTHORIZED
+    ),
+
+    TOKEN_EXPIRED(
+            "AUTH_003",
+            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+            HttpStatus.UNAUTHORIZED
+    ),
+
+    REFRESH_TOKEN_INVALID(
+            "AUTH_004",
+            "Refresh token không hợp lệ hoặc đã hết hạn.",
+            HttpStatus.UNAUTHORIZED
+    ),
+
+    REFRESH_TOKEN_REVOKED(
+            "AUTH_005",
+            "Refresh token đã bị vô hiệu hóa.",
+            HttpStatus.UNAUTHORIZED
+    ),
+
+    // =======================================================
+    // 3. Password (PASSWORD_xxx)
+    // =======================================================
+
+    PASSWORD_INCORRECT(
+            "PASSWORD_001",
+            "Mật khẩu hiện tại không chính xác.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    PASSWORD_CONFIRMATION_FAILED(
+            "PASSWORD_002",
+            "Mật khẩu xác nhận không khớp.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    PASSWORD_TOO_WEAK(
+            "PASSWORD_003",
+            "Mật khẩu không đủ mạnh.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    // =======================================================
+    // 4. User (USER_xxx)
     // =======================================================
 
     USER_NOT_FOUND(
@@ -107,86 +163,8 @@ public enum ErrorCode {
     ),
 
     // =======================================================
-    // Relationship - Friendship
+    // 5. Relationship & Social (RELATIONSHIP_xxx)
     // =======================================================
-
-    CANNOT_FRIEND_SELF(
-            "RELATIONSHIP_001",
-            "Không thể gửi lời mời kết bạn cho chính mình.",
-            HttpStatus.BAD_REQUEST
-    ),
-
-    FRIEND_REQUEST_ALREADY_SENT(
-            "RELATIONSHIP_002",
-            "Bạn đã gửi lời mời kết bạn trước đó.",
-            HttpStatus.CONFLICT
-    ),
-
-    FRIEND_REQUEST_NOT_FOUND(
-            "RELATIONSHIP_003",
-            "Không tìm thấy lời mời kết bạn.",
-            HttpStatus.NOT_FOUND
-    ),
-
-    INVALID_FRIEND_REQUEST_STATUS(
-            "RELATIONSHIP_004",
-            "Lời mời kết bạn không hợp lệ.",
-            HttpStatus.BAD_REQUEST
-    ),
-
-    ALREADY_FRIENDS(
-            "RELATIONSHIP_005",
-            "Hai người đã là bạn bè.",
-            HttpStatus.CONFLICT
-    ),
-
-    FRIENDSHIP_NOT_FOUND(
-            "RELATIONSHIP_006",
-            "Không tìm thấy quan hệ bạn bè.",
-            HttpStatus.NOT_FOUND
-    ),
-
-    NOT_FRIENDS(
-            "RELATIONSHIP_007",
-            "Hai người không phải là bạn bè.",
-            HttpStatus.BAD_REQUEST
-    ),
-
-    FRIEND_REQUEST_ALREADY_RECEIVED(
-            "RELATIONSHIP_010",
-            "Người dùng này đã gửi lời mời kết bạn cho bạn.",
-            HttpStatus.CONFLICT
-    ),
-
-    BLOCKING_USER(
-            "RELATIONSHIP_008",
-            "Bạn đã chặn người dùng này.",
-            HttpStatus.FORBIDDEN
-    ),
-
-    BLOCKED_BY_USER(
-            "RELATIONSHIP_009",
-            "Bạn đã bị người dùng này chặn.",
-            HttpStatus.FORBIDDEN
-    ),
-
-    ALREADY_FOLLOWING(
-            "RELATIONSHIP_001",
-            "Bạn đã theo dõi người dùng này.",
-            HttpStatus.CONFLICT
-    ),
-
-    NOT_FOLLOWING(
-            "RELATIONSHIP_002",
-            "Bạn chưa theo dõi người dùng này.",
-            HttpStatus.BAD_REQUEST
-    ),
-
-    CANNOT_FOLLOW_SELF(
-            "RELATIONSHIP_003",
-            "Không thể theo dõi chính mình.",
-            HttpStatus.BAD_REQUEST
-    ),
 
     CANNOT_VIEW_OWN_RELATIONSHIP(
             "RELATIONSHIP_001",
@@ -194,59 +172,115 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST
     ),
 
-    // =======================================================
-    // Authentication
-    // =======================================================
-
-    INVALID_CREDENTIALS(
-            "AUTH_001",
-            "Email hoặc mật khẩu không chính xác.",
-            HttpStatus.UNAUTHORIZED
-    ),
-
-    INVALID_TOKEN(
-            "AUTH_002",
-            "Token không hợp lệ.",
-            HttpStatus.UNAUTHORIZED
-    ),
-
-    TOKEN_EXPIRED(
-            "AUTH_003",
-            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-            HttpStatus.UNAUTHORIZED
-    ),
-
-    REFRESH_TOKEN_INVALID(
-            "AUTH_004",
-            "Refresh token không hợp lệ hoặc đã hết hạn.",
-            HttpStatus.UNAUTHORIZED
-    ),
-
-    REFRESH_TOKEN_REVOKED(
-            "AUTH_005",
-            "Refresh token đã bị vô hiệu hóa.",
-            HttpStatus.UNAUTHORIZED
-    ),
-
-    // =======================================================
-    // Password
-    // =======================================================
-
-    PASSWORD_INCORRECT(
-            "PASSWORD_001",
-            "Mật khẩu hiện tại không chính xác.",
+    CANNOT_FRIEND_SELF(
+            "RELATIONSHIP_002",
+            "Không thể gửi lời mời kết bạn cho chính mình.",
             HttpStatus.BAD_REQUEST
     ),
 
-    PASSWORD_CONFIRMATION_FAILED(
-            "PASSWORD_002",
-            "Mật khẩu xác nhận không khớp.",
+    FRIEND_REQUEST_ALREADY_SENT(
+            "RELATIONSHIP_003",
+            "Bạn đã gửi lời mời kết bạn trước đó.",
+            HttpStatus.CONFLICT
+    ),
+
+    FRIEND_REQUEST_ALREADY_RECEIVED(
+            "RELATIONSHIP_004",
+            "Người dùng này đã gửi lời mời kết bạn cho bạn.",
+            HttpStatus.CONFLICT
+    ),
+
+    FRIEND_REQUEST_NOT_FOUND(
+            "RELATIONSHIP_005",
+            "Không tìm thấy lời mời kết bạn.",
+            HttpStatus.NOT_FOUND
+    ),
+
+    INVALID_FRIEND_REQUEST_STATUS(
+            "RELATIONSHIP_006",
+            "Lời mời kết bạn không hợp lệ.",
             HttpStatus.BAD_REQUEST
     ),
 
-    PASSWORD_TOO_WEAK(
-            "PASSWORD_003",
-            "Mật khẩu không đủ mạnh.",
+    ALREADY_FRIENDS(
+            "RELATIONSHIP_007",
+            "Hai người đã là bạn bè.",
+            HttpStatus.CONFLICT
+    ),
+
+    FRIENDSHIP_NOT_FOUND(
+            "RELATIONSHIP_008",
+            "Không tìm thấy quan hệ bạn bè.",
+            HttpStatus.NOT_FOUND
+    ),
+
+    NOT_FRIENDS(
+            "RELATIONSHIP_009",
+            "Hai người không phải là bạn bè.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    BLOCKING_USER(
+            "RELATIONSHIP_010",
+            "Bạn đã chặn người dùng này.",
+            HttpStatus.FORBIDDEN
+    ),
+
+    BLOCKED_BY_USER(
+            "RELATIONSHIP_011",
+            "Bạn đã bị người dùng này chặn.",
+            HttpStatus.FORBIDDEN
+    ),
+
+    CANNOT_FOLLOW_SELF(
+            "RELATIONSHIP_012",
+            "Không thể theo dõi chính mình.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    ALREADY_FOLLOWING(
+            "RELATIONSHIP_013",
+            "Bạn đã theo dõi người dùng này.",
+            HttpStatus.CONFLICT
+    ),
+
+    NOT_FOLLOWING(
+            "RELATIONSHIP_014",
+            "Bạn chưa theo dõi người dùng này.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    // =======================================================
+    // 6. Comment (COMMENT_xxx)
+    // =======================================================
+
+    COMMENT_NOT_FOUND(
+            "COMMENT_001",
+            "Không tìm thấy bình luận.",
+            HttpStatus.NOT_FOUND
+    ),
+
+    COMMENT_NOT_OWNER(
+            "COMMENT_002",
+            "Bạn không có quyền thực hiện thao tác với bình luận này.",
+            HttpStatus.FORBIDDEN
+    ),
+
+    COMMENT_DELETED(
+            "COMMENT_003",
+            "Bình luận đã bị xóa.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    PARENT_COMMENT_NOT_FOUND(
+            "COMMENT_004",
+            "Không tìm thấy bình luận cha.",
+            HttpStatus.NOT_FOUND
+    ),
+
+    PARENT_COMMENT_DELETED(
+            "COMMENT_005",
+            "Bình luận cha đã bị xóa.",
             HttpStatus.BAD_REQUEST
     );
 
