@@ -1,0 +1,8 @@
+{
+  "name": "@social/frontend",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @social/web dev",
+    "dev:mobile": "pnpm --filter @social/mobile start"
+  }
+}
