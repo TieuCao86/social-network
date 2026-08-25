@@ -28,33 +28,52 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
+            @RequestHeader(
+                    value = "X-Client-Type",
+                    defaultValue = "WEB"
+            ) String clientType,
             HttpServletResponse response
     ) {
 
         AuthResult result = authService.login(request);
 
-        ResponseCookie cookie = ResponseCookie
-                .from("access_token", result.getAccessToken())
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ofDays(1))
-                .build();
+        LoginResponse.LoginResponseBuilder builder =
+                LoginResponse.builder()
+                        .userId(result.getUserId())
+                        .username(result.getUsername());
 
-        response.addHeader(
-                HttpHeaders.SET_COOKIE,
-                cookie.toString()
-        );
+        // ==========================================
+        // WEB → HttpOnly Cookie
+        // ==========================================
 
-        LoginResponse loginResponse = LoginResponse.builder()
-                .userId(result.getUserId())
-                .username(result.getUsername())
-                .build();
+        if ("WEB".equalsIgnoreCase(clientType)) {
+
+            ResponseCookie cookie = ResponseCookie
+                    .from("access_token", result.getAccessToken())
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(Duration.ofDays(1))
+                    .build();
+
+            response.addHeader(
+                    HttpHeaders.SET_COOKIE,
+                    cookie.toString()
+            );
+        }
+
+        // ==========================================
+        // MOBILE → accessToken
+        // ==========================================
+
+        if ("MOBILE".equalsIgnoreCase(clientType)) {
+            builder.accessToken(result.getAccessToken());
+        }
 
         return ApiResponse.success(
                 "Đăng nhập thành công",
-                loginResponse
+                builder.build()
         );
     }
 
