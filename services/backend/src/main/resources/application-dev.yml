@@ -2,19 +2,25 @@ spring:
   config:
     activate:
       on-profile: dev
+    import:
+      - "optional:classpath:application-local.yml"
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/social_network
-    username: postgres
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/social_network?sslmode=disable
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:${local.db.password:postgres}}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 5000
+      validation-timeout: 3000
+      idle-timeout: 30000
+      max-lifetime: 60000
+      maximum-pool-size: 10
 
   jpa:
     hibernate:
       ddl-auto: validate
-
     open-in-view: false
-
     properties:
       hibernate:
         format_sql: true
@@ -28,7 +34,6 @@ springdoc:
   api-docs:
     enabled: true
     path: /v3/api-docs
-
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
@@ -48,7 +53,7 @@ management:
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:${local.jwt.secret:defaultDevSecretKeyAtLeast256BitsLong123456789}}
     expiration-ms: 86400000
 
   cookie:

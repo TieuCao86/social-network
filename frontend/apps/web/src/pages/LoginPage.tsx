@@ -30,6 +30,8 @@ export function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data);
+
+      alert("Đăng nhập thành công!");
     } catch (err: any) {
       alert(err.message || "Đăng nhập thất bại");
     }

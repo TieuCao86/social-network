@@ -24,9 +24,9 @@ export function useAuth() {
   // 2. Mutation Đăng nhập
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authService.login(data),
-    onSuccess: async () => {
-      // Cookie đã được trình duyệt tự động lưu -> Fetch lại thông tin user
-      await queryClient.invalidateQueries({
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
         queryKey: queryKeys.auth.me(),
       });
     },

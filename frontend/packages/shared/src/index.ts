@@ -1,4 +1,6 @@
 export * from "./api/client";
+export * from "./api/api-client";
+export * from "./api/axios-api-client"
 
 export * from "./services/auth.service";
 

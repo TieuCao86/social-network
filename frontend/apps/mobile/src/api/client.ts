@@ -1,16 +1,23 @@
-import { createApiClient } from "@social/shared";
-import * as SecureStore from "expo-secure-store";
+import {
+  createApiClient,
+  createAxiosApiClient,
+  setApiClient,
+} from "@social/shared";
 
-export const apiClient = createApiClient(
+import { tokenStorage } from "./tokenStorage";
+
+// 1. Tạo Axios instance
+const axiosClient = createApiClient(
   process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080",
 );
 
-// Request Interceptor: Gắn client type và Bearer token
-apiClient.interceptors.request.use(
+// 2. Request interceptor
+axiosClient.interceptors.request.use(
   async (config) => {
     config.headers.set("X-Client-Type", "MOBILE");
 
-    const token = await SecureStore.getItemAsync("access_token");
+    const token = await tokenStorage.getItem("access_token");
+
     if (token) {
       config.headers.set("Authorization", `Bearer ${token}`);
     }
@@ -20,18 +27,23 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response Interceptor: Unwrap data & Xử lý 401
-apiClient.interceptors.response.use(
-  (response) => response.data,
+// 3. Response interceptor
+axiosClient.interceptors.response.use(
+  (response) => response,
+
   async (error) => {
-    // Không xóa token nếu lỗi 401 xuất phát từ chính API đăng nhập (nhập sai mật khẩu)
     const isLoginRequest = error.config?.url?.includes("/auth/login");
 
     if (error.response?.status === 401 && !isLoginRequest) {
-      await SecureStore.deleteItemAsync("access_token");
-      // TODO: Điều hướng về màn hình Login (ví dụ: router.replace("/login"))
+      await tokenStorage.deleteItem("access_token");
     }
 
     return Promise.reject(error.response?.data || error);
   },
 );
+
+// 4. AxiosInstance → ApiClient
+export const apiClient = createAxiosApiClient(axiosClient);
+
+// 5. Đăng ký cho Shared
+setApiClient(apiClient);

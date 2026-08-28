@@ -1,42 +1,56 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as SecureStore from "expo-secure-store";
 import {
   createAuthService,
   queryKeys,
-  type LoginRequest,
   type UserResponse,
 } from "@social/shared";
 import { apiClient } from "@/api/client";
+import { mobileStorage } from "../utils/storage";
 
-// Khởi tạo service gắn với axios client của mobile
 const authService = createAuthService(apiClient);
 
 export function useAuth() {
   const queryClient = useQueryClient();
 
-  // 1. Query lấy thông tin profile (chỉ chạy khi tồn tại access_token)
+  // 1. Query lấy profile (Hoạt động tốt cả trên Expo Web và Native)
   const userQuery = useQuery({
     queryKey: queryKeys.auth.me(),
     queryFn: async () => {
-      const token = await SecureStore.getItemAsync("access_token");
+      const token = await mobileStorage.getItem("access_token");
       if (!token) return null;
-      return authService.getMe();
+      try {
+        return await authService.getMe();
+      } catch (err) {
+        // Nếu token hết hạn (401), xóa token lưu trữ
+        await mobileStorage.deleteItem("access_token");
+        return null;
+      }
     },
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
 
-  // 2. Mutation Đăng nhập
+  // 2. Mutation Đăng nhập (Map dữ liệu an toàn)
   const loginMutation = useMutation({
-    mutationFn: async (data: LoginRequest) => {
-      const result = await authService.login(data);
-      if (result.accessToken) {
-        await SecureStore.setItemAsync("access_token", result.accessToken);
+    mutationFn: async (data: any) => {
+      // Map linh hoạt trường username/phoneOrEmail để khớp với backend
+      const payload = {
+        username: data.username || data.phoneOrEmail,
+        phoneOrEmail: data.phoneOrEmail || data.username,
+        password: data.password,
+      };
+
+      const result = await authService.login(payload as any);
+
+      // Lưu Access Token an toàn
+      const token = result?.accessToken || (result as any)?.token;
+      if (token) {
+        await mobileStorage.setItem("access_token", token);
       }
+
       return result;
     },
     onSuccess: async () => {
-      // Refetch lại query profile ngay sau khi lưu token
       await queryClient.invalidateQueries({
         queryKey: queryKeys.auth.me(),
       });
@@ -48,8 +62,10 @@ export function useAuth() {
     mutationFn: async () => {
       try {
         await authService.logout();
+      } catch {
+        // Bỏ qua lỗi mạng khi logout
       } finally {
-        await SecureStore.deleteItemAsync("access_token");
+        await mobileStorage.deleteItem("access_token");
       }
     },
     onSuccess: () => {
@@ -64,12 +80,10 @@ export function useAuth() {
     isLoading: userQuery.isLoading,
     isAuthenticated: !!userQuery.data,
 
-    // Login
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     loginError: loginMutation.error,
 
-    // Logout
     logout: logoutMutation.mutateAsync,
     isLoggingOut: logoutMutation.isPending,
   };

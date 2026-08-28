@@ -1,9 +1,11 @@
 spring:
     application:
         name: social-network-backend
-
     profiles:
         active: dev
+    config:
+        import:
+            - "optional:classpath:application-local.yml"
 
 server:
     port: 8080
@@ -12,3 +14,9 @@ logging:
     level:
         root: INFO
         com.socialnetwork: INFO
+
+# Cấu hình app.jwt
+app:
+    jwt:
+        secret: ${JWT_SECRET:${app.jwt.secret:}}
+        expiration-ms: 86400000
