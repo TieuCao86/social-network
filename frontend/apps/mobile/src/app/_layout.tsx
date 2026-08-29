@@ -1,38 +1,19 @@
-import React, { useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
+import React, { useEffect } from "react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useColorScheme } from "react-native";
-
-import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import { LoginPage } from "@/pages/LoginPage";
+import { queryClient } from "../api/queryClient";
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  // Khởi tạo QueryClient instance tương thích trực tiếp với hook trong useAuth.ts
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            retry: false,
-            staleTime: 5 * 60 * 1000,
-          },
-        },
-      })
-  );
+export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-      >
-        <AnimatedSplashOverlay />
-        <LoginPage />
-      </ThemeProvider>
+      <Slot />
     </QueryClientProvider>
   );
 }

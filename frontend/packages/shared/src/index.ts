@@ -12,3 +12,5 @@ export * from "./constants/queryKeys";
 export * from "./query/QueryProvider";
 
 export * from "./schemas/auth.schema";
+
+export * from "./hooks/useAuth";

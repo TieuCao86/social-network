@@ -3,6 +3,19 @@
   "private": true,
   "scripts": {
     "dev:web": "pnpm --filter @social/web dev",
-    "dev:mobile": "pnpm --filter @social/mobile start"
+    "dev:mobile": "pnpm --filter @social/mobile start",
+    "dev:mobile:clear": "pnpm --filter @social/mobile start --clear",
+    "dev:all": "pnpm --parallel --filter @social/web --filter @social/mobile dev",
+    "clean": "pnpm -r exec rm -rf node_modules .expo dist .turbo && rm -rf node_modules",
+    "reinstall": "pnpm run clean && pnpm install"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "$react",
+      "@tanstack/react-query": "$@tanstack/react-query"
+    },
+    "peerDependencyRules": {
+      "ignoreMissing": ["@tanstack/react-query", "react"]
+    }
   }
 }
