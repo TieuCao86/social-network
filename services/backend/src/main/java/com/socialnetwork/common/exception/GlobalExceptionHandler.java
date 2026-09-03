@@ -127,9 +127,11 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.warn(
-                "Request body không hợp lệ | phương thức={} | đường dẫn={}",
+                "Request body không hợp lệ | phương thức={} | đường dẫn={} | nguyên nhân={}",
                 request.getMethod(),
-                request.getRequestURI()
+                request.getRequestURI(),
+                exception.getMostSpecificCause().getMessage(),
+                exception
         );
 
         return ResponseEntity

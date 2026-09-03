@@ -42,15 +42,52 @@ public class PostController {
         }
 
         UUID currentUserId = userDetails.getUser().getId();
-        PostResponse response = postService.createPost(currentUserId, request);
-        return ApiResponse.success("Tạo bài viết thành công", response);
+
+        PostResponse response =
+                postService.createPost(currentUserId, request);
+
+        return ApiResponse.success(
+                "Tạo bài viết thành công",
+                response
+        );
+    }
+
+    @Operation(summary = "Lấy Public Feed bài viết (có phân trang)")
+    @GetMapping("/feed")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Page<PostResponse>> getFeed(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @ParameterObject
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable
+    ) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        UUID currentUserId = userDetails.getUser().getId();
+
+        Page<PostResponse> response = postService.getFeed(currentUserId, pageable);
+
+        return ApiResponse.success(
+                "Lấy bảng tin thành công",
+                response
+        );
     }
 
     @Operation(summary = "Lấy chi tiết bài viết theo ID")
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public ApiResponse<PostResponse> getPostById(@PathVariable UUID id) {
-        PostResponse response = postService.getPostById(id);
+    public ApiResponse<PostResponse> getPostById(
+            @PathVariable UUID id
+    ) {
+        PostResponse response =
+                postService.getPostById(id);
+
         return ApiResponse.success(response);
     }
 
@@ -59,9 +96,17 @@ public class PostController {
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Page<PostResponse>> getUserPosts(
             @PathVariable UUID authorId,
-            @ParameterObject @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @ParameterObject
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable
     ) {
-        Page<PostResponse> response = postService.getUserPosts(authorId, pageable);
+        Page<PostResponse> response =
+                postService.getUserPosts(authorId, pageable);
+
         return ApiResponse.success(response);
     }
 
@@ -76,8 +121,14 @@ public class PostController {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
-        UUID currentUserId = userDetails.getUser().getId();
+        UUID currentUserId =
+                userDetails.getUser().getId();
+
         postService.deletePost(id, currentUserId);
-        return ApiResponse.success("Xóa bài viết thành công", null);
+
+        return ApiResponse.success(
+                "Xóa bài viết thành công",
+                null
+        );
     }
 }

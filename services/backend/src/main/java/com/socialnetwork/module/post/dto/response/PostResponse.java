@@ -1,6 +1,5 @@
 package com.socialnetwork.module.post.dto.response;
 
-import com.socialnetwork.module.post.entity.enums.MediaType;
 import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import com.socialnetwork.module.post.entity.enums.ReactionType;
 import lombok.Builder;
@@ -8,7 +7,6 @@ import lombok.Data;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -16,7 +14,9 @@ import java.util.UUID;
 public class PostResponse {
 
     private UUID id;
-    private UUID authorId;
+
+    private PostAuthorResponse author;
+
     private String content;
     private PostVisibility visibility;
 
@@ -32,5 +32,4 @@ public class PostResponse {
 
     private Instant createdAt;
     private Instant updatedAt;
-
 }

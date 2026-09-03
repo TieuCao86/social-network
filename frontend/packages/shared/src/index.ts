@@ -14,3 +14,4 @@ export * from "./query/QueryProvider";
 export * from "./schemas/auth.schema";
 
 export * from "./hooks/useAuth";
+export * from "./hooks/useFeed";

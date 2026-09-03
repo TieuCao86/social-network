@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -14,6 +15,8 @@ import communityImg from "../assets/community.png";
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoggingIn } = useAuth();
+
+  const navigate = useNavigate();
 
   const {
     register,
@@ -31,7 +34,9 @@ export function LoginPage() {
     try {
       await login(data);
 
-      alert("Đăng nhập thành công!");
+      alert("Đăng nhập thành công");
+
+      navigate("/home", { replace: true });
     } catch (err: any) {
       alert(err.message || "Đăng nhập thất bại");
     }

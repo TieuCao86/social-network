@@ -1,32 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./hooks/useAuth";
+
 import { LoginPage } from "./pages/LoginPage";
 import { HomePage } from "./pages/HomePage";
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-
-  return <>{children}</>;
-}
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+
+        <Route path="/home" element={<HomePage />} />
+
         <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
+          path="*"
+          element={<Navigate to="/home" replace />}
         />
-        {/* Mặc định chuyển hướng về /home */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </BrowserRouter>
   );

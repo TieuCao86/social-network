@@ -1,6 +1,6 @@
 import type { ApiClient } from "../api/api-client";
 
-import type { LoginRequest, LoginResponse, UserResponse } from "../types";
+import type { LoginRequest, LoginResponse } from "../types";
 
 export const createAuthService = (client: ApiClient) => ({
   login: async (body: LoginRequest): Promise<LoginResponse> => {
@@ -13,17 +13,11 @@ export const createAuthService = (client: ApiClient) => ({
     return res.data;
   },
 
-  getMe: async (): Promise<UserResponse> => {
-    const res = await client.get<UserResponse>("/api/users/me");
-
-    if (!res.success || !res.data) {
-      throw new Error(res.message || "Không tìm thấy thông tin người dùng");
-    }
-
-    return res.data;
-  },
-
   logout: async (): Promise<void> => {
-    await client.post<null>("/api/auth/logout");
+    const res = await client.post<null>("/api/auth/logout");
+
+    if (!res.success) {
+      throw new Error(res.message || "Đăng xuất thất bại");
+    }
   },
 });

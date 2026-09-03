@@ -1,8 +1,10 @@
 package com.socialnetwork.module.relationship.entity;
 
+import com.socialnetwork.common.entity.BaseEntity;
 import com.socialnetwork.module.relationship.entity.enums.FriendshipStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,14 +15,12 @@ import java.util.UUID;
 @Table(name = "friendships")
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Friendship {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class Friendship extends BaseEntity {
 
     @Column(name = "requester_id", nullable = false)
     private UUID requesterId;
@@ -33,11 +33,4 @@ public class Friendship {
     @Builder.Default
     private FriendshipStatus status = FriendshipStatus.PENDING;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
 }

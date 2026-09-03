@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -80,4 +81,21 @@ public interface FriendshipRepository extends JpaRepository<Friendship, UUID> {
                 AND f.status = com.socialnetwork.module.relationship.entity.enums.FriendshipStatus.ACCEPTED
             """)
     long countFriends(@Param("userId") UUID userId);
+
+    @Query("""
+        SELECT
+            CASE
+                WHEN f.requesterId = :userId
+                THEN f.addresseeId
+                ELSE f.requesterId
+            END
+        FROM Friendship f
+        WHERE
+            (f.requesterId = :userId OR f.addresseeId = :userId)
+            AND f.status = :status
+        """)
+    List<UUID> findFriendIdsByUserIdAndStatus(
+            @Param("userId") UUID userId,
+            @Param("status") FriendshipStatus status
+    );
 }

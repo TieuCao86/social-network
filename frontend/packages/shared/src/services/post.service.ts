@@ -1,59 +1,89 @@
-import { createApiClient } from '../api/client';
-import { ApiResponse } from '../types/api';
-import {
+import { getApiClient } from "../api/api-client";
+import type { ApiResponse, PageResponse } from "../types/api";
+import type {
   PostResponse,
   PostCreateRequest,
   ReactionRequest,
   ReactionResponse,
   ReactionUserResponse,
   ReactionType,
-} from '../types/post';
+} from "../types/post";
 
 export const postService = {
-  // Lấy danh sách Newsfeed / Posts
-  getPosts: async (page = 0, size = 10): Promise<ApiResponse<PostResponse[]>> => {
-    const response = await apiClient.get<ApiResponse<PostResponse[]>>('/posts', {
-      params: { page, size },
+  // GET /api/posts/feed
+  getFeed: async (
+    page = 0,
+    size = 10,
+  ): Promise<ApiResponse<PageResponse<PostResponse>>> => {
+    return getApiClient().get<PageResponse<PostResponse>>("/api/posts/feed", {
+      params: {
+        page,
+        size,
+      },
     });
-    return response.data;
   },
 
-  // Xem chi tiết 1 bài viết
+  // GET /api/posts/{id}
   getPostById: async (postId: string): Promise<ApiResponse<PostResponse>> => {
-    const response = await apiClient.get<ApiResponse<PostResponse>>(`/posts/${postId}`);
-    return response.data;
+    return getApiClient().get<PostResponse>(`/api/posts/${postId}`);
   },
 
-  // Tạo bài viết mới
-  createPost: async (payload: PostCreateRequest): Promise<ApiResponse<PostResponse>> => {
-    const response = await apiClient.post<ApiResponse<PostResponse>>('/posts', payload);
-    return response.data;
+  // POST /api/posts
+  createPost: async (
+    payload: PostCreateRequest,
+  ): Promise<ApiResponse<PostResponse>> => {
+    return getApiClient().post<PostResponse>("/api/posts", payload);
   },
 
-  // Thả hoặc đổi Reaction bài viết
-  reactToPost: async (postId: string, payload: ReactionRequest): Promise<ApiResponse<ReactionResponse>> => {
-    const response = await apiClient.post<ApiResponse<ReactionResponse>>(
-      `/posts/${postId}/reactions`,
-      payload
+  // GET /api/posts/user/{authorId}
+  getUserPosts: async (
+    authorId: string,
+    page = 0,
+    size = 10,
+  ): Promise<ApiResponse<PageResponse<PostResponse>>> => {
+    return getApiClient().get<PageResponse<PostResponse>>(
+      `/api/posts/user/${authorId}`,
+      {
+        params: {
+          page,
+          size,
+        },
+      },
     );
-    return response.data;
   },
 
-  // Hủy thả reaction
-  removeReaction: async (postId: string): Promise<ApiResponse<ReactionResponse>> => {
-    const response = await apiClient.delete<ApiResponse<ReactionResponse>>(`/posts/${postId}/reactions`);
-    return response.data;
+  // DELETE /api/posts/{id}
+  deletePost: async (postId: string): Promise<ApiResponse<void>> => {
+    return getApiClient().delete<void>(`/api/posts/${postId}`);
   },
 
-  // Lấy danh sách người dùng đã thả reaction
+  // POST /api/posts/{id}/reactions
+  reactToPost: async (
+    postId: string,
+    payload: ReactionRequest,
+  ): Promise<ApiResponse<ReactionResponse>> => {
+    return getApiClient().post<ReactionResponse>(
+      `/api/posts/${postId}/reactions`,
+      payload,
+    );
+  },
+
+  // GET /api/posts/{id}/reactions
   getPostReactions: async (
     postId: string,
-    type?: ReactionType
-  ): Promise<ApiResponse<ReactionUserResponse[]>> => {
-    const response = await apiClient.get<ApiResponse<ReactionUserResponse[]>>(
-      `/posts/${postId}/reactions`,
-      { params: { type } }
+    type?: ReactionType,
+    page = 0,
+    size = 20,
+  ): Promise<ApiResponse<PageResponse<ReactionUserResponse>>> => {
+    return getApiClient().get<PageResponse<ReactionUserResponse>>(
+      `/api/posts/${postId}/reactions`,
+      {
+        params: {
+          page,
+          size,
+          ...(type ? { type } : {}),
+        },
+      },
     );
-    return response.data;
   },
 };
