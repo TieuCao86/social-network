@@ -1,10 +1,16 @@
 export * from "./api/client";
+
 export * from "./api/api-client";
-export * from "./api/axios-api-client"
+
+export * from "./api/axios-api-client";
 
 export * from "./services/auth.service";
+export * from "./services/post.service";
 
-export * from "./types";
+export * from "./types/api";
+export * from "./types/auth";
+export * from "./types/user";
+export * from "./types/post";
 
 export * from "./constants/theme";
 export * from "./constants/queryKeys";

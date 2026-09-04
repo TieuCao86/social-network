@@ -25,6 +25,9 @@ import {
 
 import { useFeed } from "@social/shared";
 
+import { CreatePost } from "../components/post/CreatePost";
+import { PostCard } from "../components/post/PostCard";
+
 export function HomePage() {
   const [activeTab, setActiveTab] = useState("home");
   const [chatOpen, setChatOpen] = useState(true);
@@ -226,43 +229,7 @@ export function HomePage() {
           </div>
 
           {/* CREATE POST */}
-          <div className="bg-white p-3.5 rounded-xl shadow-sm border border-gray-200 text-xs">
-            <div className="flex items-center space-x-2.5 mb-2.5">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"
-                alt="Avatar"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <span className="font-semibold text-gray-800">Tạo bài viết</span>
-            </div>
-
-            <input
-              type="text"
-              placeholder="Bạn đang nghĩ gì thế?..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:bg-white mb-2.5 focus:border-teal-500"
-            />
-
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-              <div className="flex space-x-4 text-gray-500 text-xs">
-                <button className="hover:text-teal-600 flex items-center space-x-1">
-                  <ImageIcon className="w-4 h-4 text-green-500" />
-                  <span>Ảnh</span>
-                </button>
-                <button className="hover:text-teal-600 flex items-center space-x-1">
-                  <Video className="w-4 h-4 text-red-500" />
-                  <span>Video</span>
-                </button>
-                <button className="hover:text-teal-600 flex items-center space-x-1">
-                  <Share2 className="w-4 h-4 text-blue-500" />
-                  <span>Chia sẻ</span>
-                </button>
-              </div>
-
-              <button className="bg-teal-700 hover:bg-teal-800 text-white font-medium px-4 py-1.5 rounded-md text-xs transition">
-                Đăng
-              </button>
-            </div>
-          </div>
+          <CreatePost />
 
           {/* FEED */}
           {isLoading && (
@@ -285,65 +252,8 @@ export function HomePage() {
 
           {/* POST */}
           {posts.map((post) => (
-            <article
-              key={post.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden text-xs"
-            >
-              <div className="p-3.5">
-                {/* POST CONTENT */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 bg-slate-50 rounded-lg overflow-hidden border border-gray-200">
-                  {/* MEDIA */}
-                  {post.mediaList?.length > 0 && post.mediaList[0].url ? (
-                    <img
-                      src={post.mediaList[0].url}
-                      alt=""
-                      className="w-full h-40 sm:h-auto object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-40 sm:h-auto bg-slate-100 flex items-center justify-center text-gray-400">
-                      No image
-                    </div>
-                  )}
-
-                  {/* CONTENT */}
-                  <div className="p-3.5 flex flex-col justify-center bg-gray-50">
-                    <p className="font-bold text-gray-800 text-sm leading-snug">
-                      {post.content}
-                    </p>
-                  </div>
-                </div>
-
-                {/* AUTHOR */}
-                <p className="text-gray-500 text-[11px] mt-2.5">
-                  {post.author.fullName || post.author.username}
-                  {" · "}@{post.author.username}
-                </p>
-              </div>
-
-              {/* ACTIONS */}
-              <div className="px-3.5 py-2.5 border-t border-gray-100 flex items-center justify-between text-gray-500 text-xs">
-                <div className="flex space-x-5">
-                  <button className="hover:text-teal-600 flex items-center space-x-1">
-                    <ThumbsUp className="w-4 h-4" />
-                    <span>{post.totalReactions}</span>
-                  </button>
-
-                  <button className="hover:text-teal-600 flex items-center space-x-1">
-                    <MessageSquare className="w-4 h-4" />
-                    <span>{post.commentCount}</span>
-                  </button>
-
-                  <button className="hover:text-teal-600 flex items-center space-x-1">
-                    <Share2 className="w-4 h-4" />
-                    <span>{post.shareCount}</span>
-                  </button>
-                </div>
-
-                <CircleCheck className="w-4 h-4 text-teal-600" />
-              </div>
-            </article>
+            <PostCard key={post.id} post={post} />
           ))}
-
         </main>
 
         {/* RIGHT SIDEBAR (DESKTOP) */}

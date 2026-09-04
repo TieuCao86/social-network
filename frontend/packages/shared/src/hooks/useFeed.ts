@@ -1,5 +1,11 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+
 import { postService } from "../services/post.service";
+import type { PostCreateRequest } from "../types/post";
 
 export function useFeed() {
   return useInfiniteQuery({
@@ -23,6 +29,20 @@ export function useFeed() {
       }
 
       return lastPage.number + 1;
+    },
+  });
+}
+
+export function useCreatePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: PostCreateRequest) => postService.createPost(payload),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["posts", "feed"],
+      });
     },
   });
 }
