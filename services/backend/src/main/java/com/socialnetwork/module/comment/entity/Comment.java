@@ -1,7 +1,6 @@
 package com.socialnetwork.module.comment.entity;
 
 import com.socialnetwork.common.entity.BaseEntity;
-import com.socialnetwork.module.comment.entity.CommentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -26,10 +25,11 @@ public class Comment extends BaseEntity {
     @Column(name = "parent_id")
     private UUID parentId;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private CommentStatus status = CommentStatus.ACTIVE;
 }

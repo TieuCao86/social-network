@@ -46,6 +46,17 @@ public interface PostReactionRepository
             @Param("postId") UUID postId
     );
 
+    @Query("""
+    SELECT r
+    FROM PostReaction r
+    WHERE r.userId = :userId
+      AND r.postId IN :postIds
+""")
+    List<PostReaction> findByUserIdAndPostIdIn(
+            @Param("userId") UUID userId,
+            @Param("postIds") List<UUID> postIds
+    );
+
 
     /*
      * ============================================================

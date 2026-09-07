@@ -11,19 +11,22 @@ import java.util.UUID;
 public interface CommentRepository
         extends JpaRepository<Comment, UUID> {
 
-    Page<Comment> findByPostIdAndParentIdIsNullAndStatus(
+    // Comment gốc của bài viết
+    Page<Comment> findByPostIdAndParentIdIsNullAndStatusOrderByCreatedAtAsc(
             UUID postId,
             CommentStatus status,
             Pageable pageable
     );
 
-    Page<Comment> findByParentIdAndStatus(
+    // Reply trực tiếp của comment
+    Page<Comment> findByParentIdAndStatusOrderByCreatedAtAsc(
             UUID parentId,
             CommentStatus status,
             Pageable pageable
     );
 
-    Page<Comment> findByUserIdAndStatus(
+    // Comment của một user
+    Page<Comment> findByUserIdAndStatusOrderByCreatedAtAsc(
             UUID userId,
             CommentStatus status,
             Pageable pageable

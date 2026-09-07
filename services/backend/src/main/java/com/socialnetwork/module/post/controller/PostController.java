@@ -25,11 +25,17 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
-@Tag(name = "Post Domain", description = "APIs quản lý bài viết và media đi kèm")
+@Tag(
+        name = "Post Domain",
+        description = "APIs quản lý bài viết và media đi kèm"
+)
 public class PostController {
 
     private final PostService postService;
 
+    /**
+     * Tạo bài viết mới.
+     */
     @Operation(summary = "Tạo bài viết mới (kèm media nếu có)")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -41,10 +47,14 @@ public class PostController {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
-        UUID currentUserId = userDetails.getUser().getId();
+        UUID currentUserId =
+                userDetails.getUser().getId();
 
         PostResponse response =
-                postService.createPost(currentUserId, request);
+                postService.createPost(
+                        currentUserId,
+                        request
+                );
 
         return ApiResponse.success(
                 "Tạo bài viết thành công",
@@ -52,7 +62,10 @@ public class PostController {
         );
     }
 
-    @Operation(summary = "Lấy Public Feed bài viết (có phân trang)")
+    /**
+     * Lấy Feed của user.
+     */
+    @Operation(summary = "Lấy Feed bài viết (có phân trang)")
     @GetMapping("/feed")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Page<PostResponse>> getFeed(
@@ -69,9 +82,14 @@ public class PostController {
             throw new BusinessException(ErrorCode.UNAUTHORIZED);
         }
 
-        UUID currentUserId = userDetails.getUser().getId();
+        UUID currentUserId =
+                userDetails.getUser().getId();
 
-        Page<PostResponse> response = postService.getFeed(currentUserId, pageable);
+        Page<PostResponse> response =
+                postService.getFeed(
+                        currentUserId,
+                        pageable
+                );
 
         return ApiResponse.success(
                 "Lấy bảng tin thành công",
@@ -79,22 +97,40 @@ public class PostController {
         );
     }
 
+    /**
+     * Lấy chi tiết bài viết.
+     */
     @Operation(summary = "Lấy chi tiết bài viết theo ID")
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<PostResponse> getPostById(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable UUID id
     ) {
+        UUID currentUserId =
+                userDetails != null
+                        ? userDetails.getUser().getId()
+                        : null;
+
         PostResponse response =
-                postService.getPostById(id);
+                postService.getPostById(
+                        id,
+                        currentUserId
+                );
 
         return ApiResponse.success(response);
     }
 
-    @Operation(summary = "Lấy danh sách bài viết của 1 người dùng (có phân trang)")
+    /**
+     * Lấy danh sách bài viết của một user.
+     */
+    @Operation(
+            summary = "Lấy danh sách bài viết của 1 người dùng (có phân trang)"
+    )
     @GetMapping("/user/{authorId}")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Page<PostResponse>> getUserPosts(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable UUID authorId,
             @ParameterObject
             @PageableDefault(
@@ -104,12 +140,24 @@ public class PostController {
             )
             Pageable pageable
     ) {
+        UUID currentUserId =
+                userDetails != null
+                        ? userDetails.getUser().getId()
+                        : null;
+
         Page<PostResponse> response =
-                postService.getUserPosts(authorId, pageable);
+                postService.getUserPosts(
+                        authorId,
+                        currentUserId,
+                        pageable
+                );
 
         return ApiResponse.success(response);
     }
 
+    /**
+     * Xóa mềm bài viết.
+     */
     @Operation(summary = "Xóa bài viết (Soft Delete - Dành cho chính chủ)")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
@@ -124,7 +172,10 @@ public class PostController {
         UUID currentUserId =
                 userDetails.getUser().getId();
 
-        postService.deletePost(id, currentUserId);
+        postService.deletePost(
+                id,
+                currentUserId
+        );
 
         return ApiResponse.success(
                 "Xóa bài viết thành công",

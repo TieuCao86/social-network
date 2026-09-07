@@ -251,8 +251,8 @@ public enum ErrorCode {
     ),
 
     // =======================================================
-    // 6. Comment (COMMENT_xxx)
-    // =======================================================
+// 6. Comment (COMMENT_xxx)
+// =======================================================
 
     COMMENT_NOT_FOUND(
             "COMMENT_001",
@@ -282,6 +282,24 @@ public enum ErrorCode {
             "COMMENT_005",
             "Bình luận cha đã bị xóa.",
             HttpStatus.BAD_REQUEST
+    ),
+
+    COMMENT_CONTENT_REQUIRED(
+            "COMMENT_006",
+            "Bình luận phải có nội dung hoặc ít nhất một tệp media.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    COMMENT_MEDIA_INVALID(
+            "COMMENT_007",
+            "Media của bình luận không hợp lệ.",
+            HttpStatus.BAD_REQUEST
+    ),
+
+    COMMENT_MEDIA_NOT_FOUND(
+            "COMMENT_008",
+            "Không tìm thấy media của bình luận.",
+            HttpStatus.NOT_FOUND
     );
 
     private final String code;

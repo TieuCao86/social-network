@@ -6,10 +6,12 @@ import com.socialnetwork.module.post.dto.request.PostCreateRequest;
 import com.socialnetwork.module.post.dto.response.PostResponse;
 import com.socialnetwork.module.post.entity.Post;
 import com.socialnetwork.module.post.entity.PostMedia;
+import com.socialnetwork.module.post.entity.PostReaction;
 import com.socialnetwork.module.post.entity.enums.PostStatus;
-import com.socialnetwork.module.post.entity.enums.PostVisibility;
+import com.socialnetwork.module.post.entity.enums.ReactionType;
 import com.socialnetwork.module.post.mapper.PostMapper;
 import com.socialnetwork.module.post.repository.PostMediaRepository;
+import com.socialnetwork.module.post.repository.PostReactionRepository;
 import com.socialnetwork.module.post.repository.PostRepository;
 import com.socialnetwork.module.post.service.PostService;
 import com.socialnetwork.module.relationship.entity.enums.FriendshipStatus;
@@ -33,6 +35,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final PostMediaRepository postMediaRepository;
+    private final PostReactionRepository postReactionRepository;
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
 
@@ -103,8 +106,10 @@ public class PostServiceImpl implements PostService {
      * Lấy chi tiết bài viết.
      */
     @Override
-    public PostResponse getPostById(UUID postId) {
-
+    public PostResponse getPostById(
+            UUID postId,
+            UUID currentUserId
+    ) {
         Post post = postRepository.findById(postId)
                 .filter(p -> p.getStatus() == PostStatus.ACTIVE)
                 .orElseThrow(() ->
@@ -117,10 +122,27 @@ public class PostServiceImpl implements PostService {
                 postMediaRepository
                         .findByPostIdOrderBySortOrderAsc(postId);
 
-        return postMapper.toResponse(
-                post,
-                mediaList
-        );
+        PostResponse response =
+                postMapper.toResponse(
+                        post,
+                        mediaList
+                );
+
+        // Lấy reaction của current user
+        if (currentUserId != null) {
+            postReactionRepository
+                    .findByPostIdAndUserId(
+                            postId,
+                            currentUserId
+                    )
+                    .ifPresent(reaction ->
+                            response.setCurrentUserReaction(
+                                    reaction.getType()
+                            )
+                    );
+        }
+
+        return response;
     }
 
     /**
@@ -129,6 +151,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public Page<PostResponse> getUserPosts(
             UUID authorId,
+            UUID currentUserId,
             Pageable pageable
     ) {
         Page<Post> postsPage =
@@ -139,7 +162,10 @@ public class PostServiceImpl implements PostService {
                                 pageable
                         );
 
-        return buildResponsePage(postsPage);
+        return buildResponsePage(
+                postsPage,
+                currentUserId
+        );
     }
 
     /**
@@ -169,7 +195,10 @@ public class PostServiceImpl implements PostService {
                         pageable
                 );
 
-        return buildResponsePage(postsPage);
+        return buildResponsePage(
+                postsPage,
+                currentUserId
+        );
     }
 
     /**
@@ -205,7 +234,8 @@ public class PostServiceImpl implements PostService {
      * Batch lấy media và chuyển Page<Post> thành Page<PostResponse>.
      */
     private Page<PostResponse> buildResponsePage(
-            Page<Post> postsPage
+            Page<Post> postsPage,
+            UUID currentUserId
     ) {
         if (postsPage.isEmpty()) {
             return Page.empty(postsPage.getPageable());
@@ -216,6 +246,9 @@ public class PostServiceImpl implements PostService {
                 .map(Post::getId)
                 .toList();
 
+        // =========================
+        // 1. Batch lấy media
+        // =========================
         List<PostMedia> mediaList =
                 postMediaRepository
                         .findByPostIdInOrderByPostIdAscSortOrderAsc(postIds);
@@ -226,6 +259,9 @@ public class PostServiceImpl implements PostService {
                                 PostMedia::getPostId
                         ));
 
+        // =========================
+        // 2. Batch lấy author
+        // =========================
         List<UUID> authorIds = postsPage.getContent()
                 .stream()
                 .map(Post::getAuthorId)
@@ -240,10 +276,55 @@ public class PostServiceImpl implements PostService {
                                 user -> user
                         ));
 
-        return postMapper.toResponsePage(
-                postsPage,
-                mediaMap,
-                userMap
-        );
+        // =========================
+        // 3. Batch lấy reaction
+        // của current user
+        // =========================
+        Map<UUID, ReactionType> reactionMap =
+                postReactionRepository
+                        .findByUserIdAndPostIdIn(
+                                currentUserId,
+                                postIds
+                        )
+                        .stream()
+                        .collect(Collectors.toMap(
+                                PostReaction::getPostId,
+                                PostReaction::getType
+                        ));
+
+        // =========================
+        // 4. Map Post -> Response
+        // =========================
+        return postsPage.map(post -> {
+
+            List<PostMedia> postMedia =
+                    mediaMap.getOrDefault(
+                            post.getId(),
+                            Collections.emptyList()
+                    );
+
+            PostResponse response =
+                    postMapper.toResponse(
+                            post,
+                            postMedia
+                    );
+
+            // Author
+            User author =
+                    userMap.get(post.getAuthorId());
+
+            if (author != null) {
+                response.setAuthor(
+                        postMapper.toAuthorResponse(author)
+                );
+            }
+
+            // Current user's reaction
+            response.setCurrentUserReaction(
+                    reactionMap.get(post.getId())
+            );
+
+            return response;
+        });
     }
 }

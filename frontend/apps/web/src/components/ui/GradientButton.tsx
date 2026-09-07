@@ -22,7 +22,7 @@ export function GradientButton({
         text-white
         font-bold text-sm sm:text-base
         tracking-wider uppercase
-        bg-gradient-to-r from-[#6366F1] via-[#06B6D4] to-[#10B981]
+        bg-linear-to-r from-[#6366F1] via-[#06B6D4] to-[#10B981]
         shadow-lg shadow-teal-500/25
         hover:shadow-xl hover:opacity-95
         active:scale-[0.99]

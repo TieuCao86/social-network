@@ -13,6 +13,7 @@ import com.socialnetwork.module.post.entity.enums.PostStatus;
 import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import com.socialnetwork.module.post.mapper.PostMapper;
 import com.socialnetwork.module.post.repository.PostMediaRepository;
+import com.socialnetwork.module.post.repository.PostReactionRepository;
 import com.socialnetwork.module.post.repository.PostRepository;
 import com.socialnetwork.module.relationship.entity.enums.FriendshipStatus;
 import com.socialnetwork.module.relationship.repository.FriendshipRepository;
@@ -54,6 +55,9 @@ class PostServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private PostReactionRepository postReactionRepository;
 
     @Mock
     private PostMapper postMapper;
@@ -312,7 +316,10 @@ class PostServiceImplTest {
             )).thenReturn(mockResponse);
 
             PostResponse result =
-                    postService.getPostById(postId);
+                    postService.getPostById(
+                            postId,
+                            authorId
+                    );
 
             assertNotNull(result);
             assertEquals(postId, result.getId());
@@ -336,7 +343,10 @@ class PostServiceImplTest {
             BusinessException exception =
                     assertThrows(
                             BusinessException.class,
-                            () -> postService.getPostById(postId)
+                            () -> postService.getPostById(
+                                    postId,
+                                    authorId
+                            )
                     );
 
             assertEquals(
@@ -364,7 +374,10 @@ class PostServiceImplTest {
             BusinessException exception =
                     assertThrows(
                             BusinessException.class,
-                            () -> postService.getPostById(postId)
+                            () -> postService.getPostById(
+                                    postId,
+                                    authorId
+                            )
                     );
 
             assertEquals(
@@ -435,14 +448,15 @@ class PostServiceImplTest {
             when(userRepository.findAllById(List.of(authorId)))
                     .thenReturn(List.of(mockUser));
 
-            when(postMapper.toResponsePage(
-                    eq(postsPage),
-                    anyMap(),
-                    anyMap()
-            )).thenReturn(responsePage);
+            when(postMapper.toResponse(eq(mockPost), anyList()))
+                    .thenReturn(mockResponse);
+
+            when(postMapper.toAuthorResponse(any(User.class)))
+                    .thenReturn(mockResponse.getAuthor());
 
             Page<PostResponse> result =
                     postService.getUserPosts(
+                            authorId,
                             authorId,
                             pageable
                     );
@@ -465,12 +479,7 @@ class PostServiceImplTest {
             verify(userRepository)
                     .findAllById(List.of(authorId));
 
-            verify(postMapper)
-                    .toResponsePage(
-                            eq(postsPage),
-                            anyMap(),
-                            anyMap()
-                    );
+            verify(postMapper).toResponse(eq(mockPost), anyList());
         }
 
         @Test
@@ -490,6 +499,7 @@ class PostServiceImplTest {
 
             Page<PostResponse> result =
                     postService.getUserPosts(
+                            authorId,
                             authorId,
                             pageable
                     );
@@ -524,151 +534,112 @@ class PostServiceImplTest {
         @Test
         @DisplayName("getFeed - Lấy bài viết của mình và bạn bè thành công")
         void getFeed_Success() {
+            // 1. Chuẩn bị IDs và Entity
+            UUID friendId = UUID.randomUUID();
+            UUID friendPostId = UUID.randomUUID();
 
-            UUID friendId =
-                    UUID.randomUUID();
+            Post friendPost = Post.builder()
+                    .id(friendPostId)
+                    .authorId(friendId)
+                    .content("Bài viết của bạn")
+                    .visibility(PostVisibility.PUBLIC)
+                    .status(PostStatus.ACTIVE)
+                    .reactionCount(0L)
+                    .commentCount(0L)
+                    .build();
 
-            UUID friendPostId =
-                    UUID.randomUUID();
+            User friendUser = User.builder()
+                    .id(friendId)
+                    .username("friend")
+                    .email("friend@example.com")
+                    .build();
 
-            Post friendPost =
-                    Post.builder()
-                            .id(friendPostId)
-                            .authorId(friendId)
-                            .content("Bài viết của bạn")
-                            .visibility(PostVisibility.PUBLIC)
-                            .status(PostStatus.ACTIVE)
-                            .reactionCount(0L)
-                            .commentCount(0L)
-                            .build();
+            // 2. Chuẩn bị DTO Response
+            PostAuthorResponse friendAuthor = PostAuthorResponse.builder()
+                    .id(friendId)
+                    .username("friend")
+                    .fullName("Friend")
+                    .build();
 
-            User friendUser =
-                    User.builder()
-                            .id(friendId)
-                            .username("friend")
-                            .email("friend@example.com")
-                            .build();
+            PostResponse friendResponse = PostResponse.builder()
+                    .id(friendPostId)
+                    .author(friendAuthor)
+                    .content("Bài viết của bạn")
+                    .build();
 
-            Pageable pageable =
-                    PageRequest.of(0, 10);
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Post> postsPage = new PageImpl<>(List.of(mockPost, friendPost), pageable, 2);
 
-            Page<Post> postsPage =
-                    new PageImpl<>(
-                            List.of(mockPost, friendPost),
-                            pageable,
-                            2
-                    );
+            // 3. Stub các repository
+            when(friendshipRepository.findFriendIdsByUserIdAndStatus(
+                    authorId,
+                    FriendshipStatus.ACCEPTED
+            )).thenReturn(List.of(friendId));
 
-            Page<PostResponse> responsePage =
-                    new PageImpl<>(
-                            List.of(
-                                    mockResponse,
-                                    PostResponse.builder()
-                                            .id(friendPostId)
-                                            .author(
-                                                    PostAuthorResponse.builder()
-                                                            .id(friendId)
-                                                            .username("friend")
-                                                            .fullName("Friend")
-                                                            .build()
-                                            )
-                                            .content("Bài viết của bạn")
-                                            .build()
-                            ),
-                            pageable,
-                            2
-                    );
+            when(postRepository.findByAuthorIdInAndStatusOrderByCreatedAtDesc(
+                    anyList(),
+                    eq(PostStatus.ACTIVE),
+                    eq(pageable)
+            )).thenReturn(postsPage);
 
-            when(friendshipRepository
-                    .findFriendIdsByUserIdAndStatus(
-                            authorId,
-                            FriendshipStatus.ACCEPTED
-                    ))
-                    .thenReturn(List.of(friendId));
-
-            when(postRepository
-                    .findByAuthorIdInAndStatusOrderByCreatedAtDesc(
-                            anyList(),
-                            eq(PostStatus.ACTIVE),
-                            eq(pageable)
-                    ))
-                    .thenReturn(postsPage);
-
-            when(postMediaRepository
-                    .findByPostIdInOrderByPostIdAscSortOrderAsc(
-                            anyList()
-                    ))
+            when(postMediaRepository.findByPostIdInOrderByPostIdAscSortOrderAsc(anyList()))
                     .thenReturn(Collections.emptyList());
 
             when(userRepository.findAllById(anyList()))
-                    .thenReturn(
-                            List.of(
-                                    mockUser,
-                                    friendUser
-                            )
-                    );
+                    .thenReturn(List.of(mockUser, friendUser));
 
-            when(postMapper.toResponsePage(
-                    eq(postsPage),
-                    anyMap(),
-                    anyMap()
-            )).thenReturn(responsePage);
+            when(postReactionRepository.findByUserIdAndPostIdIn(any(UUID.class), anyList()))
+                    .thenReturn(Collections.emptyList());
 
-            Page<PostResponse> result =
-                    postService.getFeed(
-                            authorId,
-                            pageable
-                    );
+            // 4. Stub Mapper (toResponse & toAuthorResponse)
+            when(postMapper.toResponse(eq(mockPost), anyList()))
+                    .thenReturn(mockResponse);
+            when(postMapper.toResponse(eq(friendPost), anyList()))
+                    .thenReturn(friendResponse);
 
+            when(postMapper.toAuthorResponse(eq(mockUser)))
+                    .thenReturn(mockResponse.getAuthor());
+            when(postMapper.toAuthorResponse(eq(friendUser)))
+                    .thenReturn(friendAuthor);
+
+            // 5. Thực thi method
+            Page<PostResponse> result = postService.getFeed(authorId, pageable);
+
+            // 6. Assertions
             assertNotNull(result);
             assertEquals(2, result.getTotalElements());
 
-            verify(friendshipRepository)
-                    .findFriendIdsByUserIdAndStatus(
-                            authorId,
-                            FriendshipStatus.ACCEPTED
-                    );
+            // 7. Verifications
+            verify(friendshipRepository).findFriendIdsByUserIdAndStatus(
+                    authorId,
+                    FriendshipStatus.ACCEPTED
+            );
 
-            verify(postRepository)
-                    .findByAuthorIdInAndStatusOrderByCreatedAtDesc(
-                            argThat(ids ->
-                                    ids.contains(authorId)
-                                            && ids.contains(friendId)
-                            ),
-                            eq(PostStatus.ACTIVE),
-                            eq(pageable)
-                    );
+            verify(postRepository).findByAuthorIdInAndStatusOrderByCreatedAtDesc(
+                    argThat(ids -> ids.contains(authorId) && ids.contains(friendId)),
+                    eq(PostStatus.ACTIVE),
+                    eq(pageable)
+            );
 
-            verify(postMediaRepository)
-                    .findByPostIdInOrderByPostIdAscSortOrderAsc(
-                            argThat(ids ->
-                                    ids.contains(postId)
-                                            && ids.contains(friendPostId)
-                            )
-                    );
+            verify(postMediaRepository).findByPostIdInOrderByPostIdAscSortOrderAsc(
+                    argThat(ids -> ids.contains(postId) && ids.contains(friendPostId))
+            );
 
-            verify(userRepository)
-                    .findAllById(
-                            argThat((Iterable<UUID> ids) -> {
-                                Collection<UUID> idList = (Collection<UUID>) ids;
-                                return idList.contains(authorId) && idList.contains(friendId);
-                            })
-                    );
+            verify(userRepository).findAllById(
+                    argThat((Iterable<UUID> ids) -> {
+                        Collection<UUID> idList = (Collection<UUID>) ids;
+                        return idList.contains(authorId) && idList.contains(friendId);
+                    })
+            );
 
-            verify(postMapper)
-                    .toResponsePage(
-                            eq(postsPage),
-                            anyMap(),
-                            anyMap()
-                    );
+            verify(postMapper, times(2)).toResponse(any(Post.class), anyList());
         }
 
         @Test
         @DisplayName("getFeed - Không có bạn bè vẫn lấy bài viết của chính mình")
         void getFeed_NoFriends_StillIncludeCurrentUser() {
 
-            Pageable pageable =
-                    PageRequest.of(0, 10);
+            Pageable pageable = PageRequest.of(0, 10);
 
             Page<Post> postsPage =
                     new PageImpl<>(
@@ -677,13 +648,7 @@ class PostServiceImplTest {
                             1
                     );
 
-            Page<PostResponse> responsePage =
-                    new PageImpl<>(
-                            List.of(mockResponse),
-                            pageable,
-                            1
-                    );
-
+            // 1. Stub friendship
             when(friendshipRepository
                     .findFriendIdsByUserIdAndStatus(
                             authorId,
@@ -691,6 +656,7 @@ class PostServiceImplTest {
                     ))
                     .thenReturn(Collections.emptyList());
 
+            // 2. Stub post repository
             when(postRepository
                     .findByAuthorIdInAndStatusOrderByCreatedAtDesc(
                             anyList(),
@@ -699,30 +665,41 @@ class PostServiceImplTest {
                     ))
                     .thenReturn(postsPage);
 
+            // 3. Stub post media repository
             when(postMediaRepository
                     .findByPostIdInOrderByPostIdAscSortOrderAsc(
                             List.of(postId)
                     ))
                     .thenReturn(Collections.emptyList());
 
+            // 4. Stub user repository
             when(userRepository.findAllById(List.of(authorId)))
                     .thenReturn(List.of(mockUser));
 
-            when(postMapper.toResponsePage(
-                    eq(postsPage),
-                    anyMap(),
-                    anyMap()
-            )).thenReturn(responsePage);
+            // 5. Stub reaction repository
+            when(postReactionRepository
+                    .findByUserIdAndPostIdIn(any(UUID.class), anyList()))
+                    .thenReturn(Collections.emptyList());
 
+            // 6. Stub mapper (THAY THẾ toResponsePage BẰNG toResponse & toAuthorResponse)
+            when(postMapper.toResponse(eq(mockPost), anyList()))
+                    .thenReturn(mockResponse);
+
+            when(postMapper.toAuthorResponse(eq(mockUser)))
+                    .thenReturn(mockResponse.getAuthor());
+
+            // Execute
             Page<PostResponse> result =
                     postService.getFeed(
                             authorId,
                             pageable
                     );
 
+            // Assertions
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
 
+            // Verifications
             verify(postRepository)
                     .findByAuthorIdInAndStatusOrderByCreatedAtDesc(
                             argThat(ids ->
@@ -732,6 +709,8 @@ class PostServiceImplTest {
                             eq(PostStatus.ACTIVE),
                             eq(pageable)
                     );
+
+            verify(postMapper).toResponse(eq(mockPost), anyList());
         }
 
         @Test

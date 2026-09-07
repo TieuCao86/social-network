@@ -4,6 +4,7 @@ import com.socialnetwork.module.comment.entity.CommentStatus;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -17,13 +18,17 @@ public class CommentResponse {
 
     private UUID postId;
 
-    private UUID userId;
+    private CommentAuthorResponse author;
 
     private UUID parentId;
 
     private String content;
 
     private CommentStatus status;
+
+    private List<CommentMediaResponse> mediaList;
+
+    private long replyCount;
 
     private Instant createdAt;
 

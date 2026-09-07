@@ -1,9 +1,6 @@
-CREATE TYPE comment_status AS ENUM (
-    'ACTIVE',
-    'DELETED',
-    'HIDDEN',
-    'FLAGGED'
-);
+-- ============================================================
+-- COMMENTS
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS comments (
                                         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -12,15 +9,12 @@ CREATE TABLE IF NOT EXISTS comments (
     user_id UUID NOT NULL,
     parent_id UUID,
 
-    content TEXT NOT NULL,
+    content TEXT,
 
-    status comment_status NOT NULL DEFAULT 'ACTIVE',
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
 
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL
-    DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
-                             DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                              CONSTRAINT fk_comments_post
                              FOREIGN KEY (post_id)
@@ -37,15 +31,28 @@ CREATE TABLE IF NOT EXISTS comments (
     REFERENCES comments(id)
                          ON DELETE CASCADE,
 
-    CONSTRAINT chk_comments_content
-    CHECK (length(trim(content)) > 0)
+    CONSTRAINT chk_comments_status
+    CHECK (
+              status IN (
+              'ACTIVE',
+              'DELETED',
+              'HIDDEN',
+              'FLAGGED'
+                        )
+    ),
+
+    CONSTRAINT chk_comments_content_or_empty
+    CHECK (
+              content IS NULL
+              OR length(trim(content)) > 0
+    )
     );
 
 -- Comment gốc của post
 CREATE INDEX idx_comments_post_created
     ON comments(post_id, created_at DESC);
 
--- Comment cấp 1
+-- Comment gốc (không có parent)
 CREATE INDEX idx_comments_post_root
     ON comments(post_id, created_at DESC)
     WHERE parent_id IS NULL;
@@ -55,6 +62,6 @@ CREATE INDEX idx_comments_parent
     ON comments(parent_id)
     WHERE parent_id IS NOT NULL;
 
--- Comment của user
+-- Comment theo user
 CREATE INDEX idx_comments_user
     ON comments(user_id);

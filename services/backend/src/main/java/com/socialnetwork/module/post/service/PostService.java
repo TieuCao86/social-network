@@ -9,16 +9,29 @@ import java.util.UUID;
 
 public interface PostService {
 
-    PostResponse createPost(UUID authorId, PostCreateRequest request);
+    PostResponse createPost(
+            UUID authorId,
+            PostCreateRequest request
+    );
 
-    PostResponse getPostById(UUID postId);
+    PostResponse getPostById(
+            UUID postId,
+            UUID currentUserId
+    );
 
-    Page<PostResponse> getUserPosts(UUID authorId, Pageable pageable);
+    Page<PostResponse> getUserPosts(
+            UUID authorId,
+            UUID currentUserId,
+            Pageable pageable
+    );
 
     Page<PostResponse> getFeed(
             UUID currentUserId,
             Pageable pageable
     );
 
-    void deletePost(UUID postId, UUID currentUserId);
+    void deletePost(
+            UUID postId,
+            UUID currentUserId
+    );
 }
