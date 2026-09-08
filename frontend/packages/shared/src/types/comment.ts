@@ -35,3 +35,19 @@ export interface CommentResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CommentMediaRequest {
+  fileId: string;
+  type: CommentMediaType;
+}
+
+export interface CommentCreateRequest {
+  content?: string;
+  parentId?: string | null;
+  mediaList?: CommentMediaRequest[];
+}
+
+export interface CommentUpdateRequest {
+  content?: string;
+  mediaList?: CommentMediaRequest[];
+}

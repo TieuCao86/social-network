@@ -1,7 +1,5 @@
 export * from "./api/client";
-
 export * from "./api/api-client";
-
 export * from "./api/axios-api-client";
 
 export * from "./services/auth.service";
@@ -21,7 +19,8 @@ export * from "./query/QueryProvider";
 
 export * from "./schemas/auth.schema";
 
-export * from "./hooks/useAuth";
-export * from "./hooks/useFeed";
-export * from "./hooks/usePostReaction";
-export * from "./hooks/useComment";
+export * from "./hooks/auth.hooks";
+export * from "./hooks/post.hooks";
+export * from "./hooks/comment.hooks";
+
+export * from "./utils/formatRelativeTime";

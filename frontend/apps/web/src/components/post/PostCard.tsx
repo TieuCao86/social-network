@@ -4,6 +4,7 @@ import { CircleCheck, MessageSquare, Share2, ThumbsUp } from "lucide-react";
 import {
   ReactionType,
   useReactToPost,
+  useCountComments,
   type PostResponse,
 } from "@social/shared";
 
@@ -67,6 +68,18 @@ export function PostCard({ post }: PostCardProps) {
   );
 
   const [reactionCount, setReactionCount] = useState(post.totalReactions ?? 0);
+
+  // ============================================================
+  // COMMENT COUNT
+  // ============================================================
+
+  const { data: currentCommentCount } = useCountComments(post.id);
+
+  const displayedCommentCount = currentCommentCount ?? post.commentCount ?? 0;
+
+  // ============================================================
+  // SYNC POST REACTION
+  // ============================================================
 
   useEffect(() => {
     setUserReaction(post.currentUserReaction ?? undefined);
@@ -133,17 +146,14 @@ export function PostCard({ post }: PostCardProps) {
     setUserReaction(nextReaction);
 
     setReactionCount((prev) => {
-      // Bỏ reaction hiện tại
       if (isRemoving) {
         return Math.max(0, prev - 1);
       }
 
-      // Chưa từng reaction
       if (!previousReaction) {
         return prev + 1;
       }
 
-      // Đổi reaction
       return prev;
     });
 
@@ -164,12 +174,10 @@ export function PostCard({ post }: PostCardProps) {
           }
 
           setUserReaction(data.currentUserReaction ?? undefined);
-
           setReactionCount(data.totalReactions ?? 0);
         },
 
         onError: () => {
-          // Rollback nếu API lỗi
           setUserReaction(previousReaction);
           setReactionCount(previousCount);
         },
@@ -241,8 +249,6 @@ export function PostCard({ post }: PostCardProps) {
             onMouseEnter={handleReactionEnter}
             onMouseLeave={handleReactionLeave}
           >
-            {/* REACTION POPUP */}
-
             {showReactions && (
               <div className="absolute bottom-full left-0 z-20 pb-2">
                 <div className="flex items-center gap-1.5 bg-white border border-gray-200 shadow-xl rounded-full px-2.5 py-1.5 animate-in fade-in zoom-in-95 duration-150">
@@ -265,8 +271,6 @@ export function PostCard({ post }: PostCardProps) {
                 </div>
               </div>
             )}
-
-            {/* MAIN REACTION BUTTON */}
 
             <button
               type="button"
@@ -303,7 +307,7 @@ export function PostCard({ post }: PostCardProps) {
           >
             <MessageSquare className="w-4 h-4" />
 
-            <span>{post.commentCount}</span>
+            <span>{displayedCommentCount}</span>
           </button>
 
           {/* ====================================================
@@ -330,7 +334,7 @@ export function PostCard({ post }: PostCardProps) {
       ======================================================== */}
 
       {showComments && (
-        <CommentSection postId={post.id} commentCount={post.commentCount} />
+        <CommentSection postId={post.id} commentCount={displayedCommentCount} />
       )}
     </article>
   );
