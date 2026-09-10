@@ -1,24 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import logoImg_N from "../assets/logo_N.png";
 import {
   Home,
   Compass,
   MessageSquare,
-  Users,
   Bell,
   User,
   Search,
   Image as ImageIcon,
-  Share2,
-  ThumbsUp,
-  MoreHorizontal,
   X,
   Minus,
-  Video,
   Paperclip,
   ThumbsUp as LikeIcon,
   ChevronDown,
-  CircleCheck,
   Plus,
   MessageCircle,
 } from "lucide-react";
@@ -33,14 +27,7 @@ export function HomePage() {
   const [chatOpen, setChatOpen] = useState(true);
   const [message, setMessage] = useState("");
 
-  const {
-    data,
-    isLoading,
-    isError,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useFeed();
+  const { data, isLoading, isError } = useFeed();
 
   const posts = data?.pages.flatMap((page) => page.content) ?? [];
 

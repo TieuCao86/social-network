@@ -8,14 +8,5 @@
     "dev:all": "pnpm --parallel --filter @social/web --filter @social/mobile dev",
     "clean": "pnpm -r exec rm -rf node_modules .expo dist .turbo && rm -rf node_modules",
     "reinstall": "pnpm run clean && pnpm install"
-  },
-  "pnpm": {
-    "overrides": {
-      "react": "$react",
-      "@tanstack/react-query": "$@tanstack/react-query"
-    },
-    "peerDependencyRules": {
-      "ignoreMissing": ["@tanstack/react-query", "react"]
-    }
   }
 }

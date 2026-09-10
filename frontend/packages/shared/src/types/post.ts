@@ -4,14 +4,16 @@ export type PostStatus = "ACTIVE" | "ARCHIVED" | "DELETED";
 
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT";
 
-export enum ReactionType {
-  LIKE = "LIKE",
-  LOVE = "LOVE",
-  HAHA = "HAHA",
-  WOW = "WOW",
-  SAD = "SAD",
-  ANGRY = "ANGRY",
-}
+export const ReactionType = {
+  LIKE: "LIKE",
+  LOVE: "LOVE",
+  HAHA: "HAHA",
+  WOW: "WOW",
+  SAD: "SAD",
+  ANGRY: "ANGRY",
+} as const;
+
+export type ReactionType = (typeof ReactionType)[keyof typeof ReactionType];
 
 export interface PostAuthorResponse {
   id: string;

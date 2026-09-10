@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,8 @@ import communityImg from "../assets/community.png";
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoggingIn } = useAuth();
+  const { useLogin } = useAuth();
+  const login = useLogin();
 
   const navigate = useNavigate();
 
@@ -32,7 +33,7 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data);
+      await login.mutateAsync(data);
 
       alert("Đăng nhập thành công");
 
@@ -137,8 +138,8 @@ export function LoginPage() {
 
               {/* Nút Gradient SIGN IN */}
               <div className="pt-2">
-                <GradientButton type="submit" isLoading={isLoggingIn}>
-                  {isLoggingIn ? "Signing In..." : "SIGN IN"}
+                <GradientButton type="submit" isLoading={login.isPending}>
+                  {login.isPending ? "Signing In..." : "SIGN IN"}
                 </GradientButton>
               </div>
             </form>
