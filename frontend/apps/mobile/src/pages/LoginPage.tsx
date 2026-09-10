@@ -19,6 +19,8 @@ import { Feather } from "@expo/vector-icons";
 import { loginSchema, type LoginFormData } from "@social/shared";
 import { useAuth } from "../hooks/useAuth";
 
+import { tokenStorage } from "../api/tokenStorage";
+
 // Import logo dạng đứng
 import logoImg_D from "../../assets/logo_D.png";
 
@@ -33,7 +35,8 @@ const showToastOrAlert = (title: string, message: string) => {
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoggingIn } = useAuth();
+  const { useLogin } = useAuth();
+  const login = useLogin();
 
   const {
     control,
@@ -50,7 +53,13 @@ export function LoginPage() {
   // Xử lý khi Form hợp lệ
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data);
+      const result = await login.mutateAsync(data);
+
+      // Mobile nhận JWT từ backend và lưu lại
+      if (result.accessToken) {
+        await tokenStorage.setItem("access_token", result.accessToken);
+      }
+
       showToastOrAlert("Đăng nhập thành công", "Chào mừng bạn quay trở lại!");
     } catch (err: any) {
       showToastOrAlert(
@@ -180,9 +189,9 @@ export function LoginPage() {
             {/* Nút Gradient SIGN IN */}
             <TouchableOpacity
               onPress={handleSubmit(onSubmit, onInvalid)}
-              disabled={isLoggingIn}
+              disabled={login.isPending}
               activeOpacity={0.85}
-              style={[styles.btnContainer, isLoggingIn && { opacity: 0.7 }]}
+              style={[styles.btnContainer, login.isPending && { opacity: 0.7 }]}
             >
               <LinearGradient
                 colors={["#6366F1", "#06B6D4", "#10B981"]}
@@ -190,7 +199,7 @@ export function LoginPage() {
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientBtn}
               >
-                {isLoggingIn ? (
+                {login.isPending ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <Text style={styles.btnText}>SIGN IN</Text>
