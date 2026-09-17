@@ -17,5 +17,6 @@ public interface UserMapper {
     @Mapping(target = "phoneVerified", ignore = true)
     User toEntity(UserCreateRequest request);
 
+    @Mapping(source = "id", target = "userId")
     UserResponse toResponse(User user);
 }

@@ -2,6 +2,7 @@ import {
   createApiClient,
   createAxiosApiClient,
   setApiClient,
+  createUseAuth,
 } from "@social/shared";
 
 const axiosClient = createApiClient(
@@ -47,3 +48,6 @@ export const apiClient = createAxiosApiClient(axiosClient);
 
 // Đăng ký client cho Shared
 setApiClient(apiClient);
+
+// Auth hooks của Web
+export const auth = createUseAuth(apiClient);

@@ -19,9 +19,6 @@ export function ReplyList({ commentId, postId }: ReplyListProps) {
 
   const replies = data?.pages.flatMap((page) => page.content) ?? [];
 
-  // ============================================================
-  // LOADING
-  // ============================================================
   if (isLoading) {
     return (
       <div className="mt-3 ml-8 text-sm text-gray-500">
@@ -30,9 +27,6 @@ export function ReplyList({ commentId, postId }: ReplyListProps) {
     );
   }
 
-  // ============================================================
-  // ERROR
-  // ============================================================
   if (isError) {
     return (
       <div className="mt-3 ml-8 text-sm text-red-500">
@@ -41,9 +35,6 @@ export function ReplyList({ commentId, postId }: ReplyListProps) {
     );
   }
 
-  // ============================================================
-  // EMPTY
-  // ============================================================
   if (replies.length === 0) {
     return (
       <div className="mt-3 ml-8 text-sm text-gray-500">Chưa có phản hồi.</div>
@@ -52,17 +43,9 @@ export function ReplyList({ commentId, postId }: ReplyListProps) {
 
   return (
     <div className="mt-3 ml-8 pl-4 border-l-2 border-gray-100 space-y-4">
-      {/* ========================================================
-          REPLIES
-          ======================================================== */}
-
       {replies.map((reply) => (
         <CommentItem key={reply.id} comment={reply} postId={postId} />
       ))}
-
-      {/* ========================================================
-          LOAD MORE
-          ======================================================== */}
 
       {hasNextPage && (
         <div className="flex justify-center pt-1">

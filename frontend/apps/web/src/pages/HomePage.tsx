@@ -1,12 +1,10 @@
 import { useState } from "react";
-import logoImg_N from "../assets/logo_N.png";
 import {
   Home,
   Compass,
   MessageSquare,
   Bell,
   User,
-  Search,
   Image as ImageIcon,
   X,
   Minus,
@@ -21,6 +19,7 @@ import { useFeed } from "@social/shared";
 
 import { CreatePost } from "../components/post/CreatePost";
 import { PostCard } from "../components/post/PostCard";
+import { Navbar } from "../components/ui/Navbar";
 
 export function HomePage() {
   const [activeTab, setActiveTab] = useState("home");
@@ -54,14 +53,6 @@ export function HomePage() {
     },
   ];
 
-  const tabs = [
-    { key: "home", label: "Trang chủ", icon: Home },
-    { key: "msg", label: "Tin nhắn", icon: MessageSquare },
-    { key: "notif", label: "Thông báo", icon: Bell },
-    { key: "explore", label: "Khám phá", icon: Compass },
-    { key: "profile", label: "Cá nhân", icon: User },
-  ];
-
   const stories = [
     {
       img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200",
@@ -83,73 +74,11 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen w-full bg-slate-100 flex flex-col text-gray-800 relative">
-      {/* ================= HEADER ================= */}
-      <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-        {/* LOGO & SEARCH */}
-        <div className="flex items-center space-x-4 md:space-x-6">
-          <div className="flex items-center cursor-pointer">
-            <img
-              src={logoImg_N}
-              alt="Logo"
-              className="h-12 md:h-16 w-auto object-contain"
-            />
-          </div>
-
-          <div className="relative w-44 sm:w-64 md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm..."
-              className="w-full bg-slate-100 pl-8 pr-4 py-1.5 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
-            />
-          </div>
-        </div>
-
-        {/* CENTER TABS (DESKTOP) */}
-        <nav className="hidden md:flex items-center space-x-2 lg:space-x-6 text-xs font-semibold text-gray-600">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex flex-col items-center pb-1 pt-1 px-3 transition border-b-2 ${
-                  isActive
-                    ? "text-teal-700 border-teal-600 font-bold"
-                    : "border-transparent hover:text-teal-600"
-                }`}
-              >
-                <Icon className="w-4 h-4 mb-0.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* HEADER ACTIONS */}
-        <div className="flex items-center space-x-2 md:space-x-3">
-          <button className="relative w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition">
-            <Bell className="w-4 h-4 text-gray-600" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-              2
-            </span>
-          </button>
-
-          <button className="relative w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-teal-500 hover:bg-slate-200 transition">
-            <MessageSquare className="w-4 h-4 text-teal-600" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-              7
-            </span>
-          </button>
-
-          <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-            alt="Avatar"
-            className="w-8 h-8 rounded-full object-cover cursor-pointer ring-1 ring-teal-500"
-          />
-        </div>
-      </header>
+      {/* ================= NAVBAR ================= */}
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       {/* ================= MAIN CONTENT ================= */}
       <div className="flex-1 w-full max-w-[1440px] mx-auto grid grid-cols-12 gap-4 lg:gap-6 p-3 md:p-6 pb-20 md:pb-6">

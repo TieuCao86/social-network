@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { CircleCheck, MessageSquare, Share2, ThumbsUp } from "lucide-react";
+import {
+  CircleCheck,
+  Globe,
+  Heart,
+  MessageSquare,
+  MoreHorizontal,
+  Play,
+  Share2,
+  ThumbsUp,
+} from "lucide-react";
 
 import {
   ReactionType,
@@ -69,24 +78,15 @@ export function PostCard({ post }: PostCardProps) {
 
   const [reactionCount, setReactionCount] = useState(post.totalReactions ?? 0);
 
-  // ============================================================
-  // COMMENT COUNT
-  // ============================================================
-
   const { data: currentCommentCount } = useCountComments(post.id);
 
   const displayedCommentCount = currentCommentCount ?? post.commentCount ?? 0;
-
-  // ============================================================
-  // SYNC POST REACTION
-  // ============================================================
 
   useEffect(() => {
     setUserReaction(post.currentUserReaction ?? undefined);
     setReactionCount(post.totalReactions ?? 0);
   }, [post.id, post.currentUserReaction, post.totalReactions]);
 
-  // Cleanup timer khi component unmount
   useEffect(() => {
     return () => {
       if (reactionTimer) {
@@ -101,9 +101,10 @@ export function PostCard({ post }: PostCardProps) {
     (reaction) => reaction.type === userReaction,
   );
 
-  // ============================================================
-  // REACTION HOVER
-  // ============================================================
+  const topReactions = post.topReactions
+    ?.slice(0, 3)
+    .map((type) => reactions.find((reaction) => reaction.type === type))
+    .filter(Boolean);
 
   const handleReactionEnter = () => {
     if (reactionTimer) {
@@ -123,10 +124,6 @@ export function PostCard({ post }: PostCardProps) {
     setReactionTimer(timer);
   };
 
-  // ============================================================
-  // REACTION
-  // ============================================================
-
   const handleReaction = (type: ReactionType) => {
     setShowReactions(false);
 
@@ -142,7 +139,6 @@ export function PostCard({ post }: PostCardProps) {
 
     const nextReaction = isRemoving ? undefined : type;
 
-    // Optimistic UI
     setUserReaction(nextReaction);
 
     setReactionCount((prev) => {
@@ -157,7 +153,6 @@ export function PostCard({ post }: PostCardProps) {
       return prev;
     });
 
-    // API
     reactToPost.mutate(
       {
         postId: post.id,
@@ -189,150 +184,116 @@ export function PostCard({ post }: PostCardProps) {
     handleReaction(userReaction ?? ReactionType.LIKE);
   };
 
-  // ============================================================
-  // COMMENT
-  // ============================================================
-
   const handleCommentClick = () => {
     setShowComments((prev) => !prev);
   };
 
   return (
-    <article className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden text-xs">
-      {/* ========================================================
-          POST CONTENT
-      ======================================================== */}
+    <article className="bg-white rounded-xl shadow-sm overflow-hidden text-xs">
+      {/* ================= HEADER ================= */}
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <img
+            src={
+              post.author.avatarUrl ||
+              "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"
+            }
+            alt={post.author.fullName || post.author.username}
+            className="w-10 h-10 rounded-full object-cover"
+          />
 
-      <div className="p-3.5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 bg-slate-50 rounded-lg overflow-hidden border border-gray-200">
-          {/* MEDIA */}
+          <div>
+            <h4 className="font-bold text-sm text-gray-900">
+              {post.author.fullName || post.author.username}
+            </h4>
 
-          {firstMedia ? (
-            <div className="w-full h-40 sm:h-auto bg-slate-100 flex items-center justify-center text-gray-400">
-              <span>{firstMedia.type === "IMAGE" ? "Image" : "Video"}</span>
+            <div className="flex items-center space-x-1 text-xs text-gray-500">
+              <span>{post.createdAt}</span>
+              <span>·</span>
+              <Globe className="w-3 h-3" />
             </div>
-          ) : (
-            <div className="w-full h-40 sm:h-auto bg-slate-100 flex items-center justify-center text-gray-400">
-              No image
-            </div>
-          )}
-
-          {/* CONTENT */}
-
-          <div className="p-3.5 flex flex-col justify-center bg-gray-50">
-            <p className="font-bold text-gray-800 text-sm leading-snug">
-              {post.content}
-            </p>
           </div>
         </div>
 
-        {/* AUTHOR */}
-
-        <p className="text-gray-500 text-[11px] mt-2.5">
-          {post.author.fullName || post.author.username}
-          {" · "}@{post.author.username}
-        </p>
+        <button
+          type="button"
+          className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition"
+        >
+          <MoreHorizontal className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* ========================================================
-          ACTION BAR
-      ======================================================== */}
+      {/* ================= CONTENT ================= */}
+      {post.content && (
+        <div className="px-4 text-sm pb-3 text-gray-800">{post.content}</div>
+      )}
 
-      <div className="px-3.5 py-2.5 border-t border-gray-100 flex items-center justify-between text-gray-500 text-xs">
-        <div className="flex space-x-5">
-          {/* ====================================================
-              REACTION
-          ==================================================== */}
+      {/* ================= MEDIA ================= */}
+      {firstMedia && (
+        <div className="bg-black relative h-72 flex items-center justify-center">
+          {firstMedia.type === "IMAGE" ? (
+            <img
+              src={firstMedia.url}
+              alt="Post media"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <>
+              <video
+                src={firstMedia.url}
+                className="w-full h-full object-cover"
+              />
 
-          <div
-            className="relative"
-            onMouseEnter={handleReactionEnter}
-            onMouseLeave={handleReactionLeave}
-          >
-            {showReactions && (
-              <div className="absolute bottom-full left-0 z-20 pb-2">
-                <div className="flex items-center gap-1.5 bg-white border border-gray-200 shadow-xl rounded-full px-2.5 py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                  {reactions.map((reaction) => (
-                    <button
-                      key={reaction.type}
-                      type="button"
-                      title={reaction.label}
-                      onClick={() => handleReaction(reaction.type)}
-                      className={`text-2xl leading-none transition-transform duration-150 hover:scale-125 ${
-                        String(userReaction).toUpperCase() ===
-                        String(reaction.type).toUpperCase()
-                          ? "scale-125"
-                          : ""
-                      }`}
-                    >
-                      {reaction.emoji}
-                    </button>
-                  ))}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg cursor-pointer hover:bg-red-700 transition">
+                  <Play className="w-6 h-6 ml-1 fill-white" />
                 </div>
               </div>
-            )}
+            </>
+          )}
+        </div>
+      )}
 
-            <button
-              type="button"
-              disabled={reactToPost.isPending}
-              onClick={handleMainButtonClick}
-              className={`flex items-center space-x-1.5 transition-colors font-medium ${
-                activeReaction
-                  ? activeReaction.color
-                  : "text-gray-500 hover:text-teal-600"
-              }`}
-            >
-              {activeReaction ? (
-                <span className="text-base leading-none">
-                  {activeReaction.emoji}
-                </span>
-              ) : (
-                <ThumbsUp className="w-4 h-4" />
-              )}
+      {/* ================= STATS ================= */}
+      <div className="px-4 py-2.5 flex items-center justify-between text-gray-500 text-xs border-b border-gray-200">
+        {/* Tổng cảm xúc - bình luận - chia sẻ */}
+        <div className="flex items-center gap-5">
+          {/* Tổng reaction */}
+          <span className="flex items-center gap-1.5">
+            <ThumbsUp className="w-4 h-4" />
+            <span>{reactionCount}</span>
+          </span>
 
-              <span>{reactionCount}</span>
-            </button>
-          </div>
-
-          {/* ====================================================
-              COMMENT
-          ==================================================== */}
-
-          <button
-            type="button"
-            onClick={handleCommentClick}
-            className={`flex items-center space-x-1 transition-colors ${
-              showComments ? "text-teal-600 font-medium" : "hover:text-teal-600"
-            }`}
-          >
+          {/* Tổng comment */}
+          <span className="flex items-center gap-1.5">
             <MessageSquare className="w-4 h-4" />
-
             <span>{displayedCommentCount}</span>
-          </button>
+          </span>
 
-          {/* ====================================================
-              SHARE
-          ==================================================== */}
-
-          <button
-            type="button"
-            className="hover:text-teal-600 flex items-center space-x-1 transition-colors"
-          >
+          {/* Tổng share */}
+          <span className="flex items-center gap-1.5">
             <Share2 className="w-4 h-4" />
-
-            <span>{post.shareCount}</span>
-          </button>
+            <span>{post.shareCount ?? 0}</span>
+          </span>
         </div>
 
-        {/* VERIFIED */}
-
-        <CircleCheck className="w-4 h-4 text-teal-600" />
+        {/* 3 reaction nhiều nhất */}
+        <div className="flex items-center">
+          {topReactions?.map((reaction, index) =>
+            reaction ? (
+              <span
+                key={reaction.type}
+                title={reaction.label}
+                className={`text-base leading-none ${index > 0 ? "-ml-1" : ""}`}
+              >
+                {reaction.emoji}
+              </span>
+            ) : null,
+          )}
+        </div>
       </div>
 
-      {/* ========================================================
-          COMMENT SECTION
-      ======================================================== */}
-
+      {/* ================= COMMENTS ================= */}
       {showComments && (
         <CommentSection postId={post.id} commentCount={displayedCommentCount} />
       )}

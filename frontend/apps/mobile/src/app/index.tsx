@@ -1,11 +1,14 @@
-import React from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginPage } from "@/pages/LoginPage";
 import { MobileHomePage } from "../pages/HomePage";
 
 export default function HomeScreen() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { useMe } = useAuth();
+
+  const { data: user, isLoading } = useMe();
+
+  const isAuthenticated = !!user;
 
   if (isLoading) {
     return (
@@ -15,7 +18,6 @@ export default function HomeScreen() {
     );
   }
 
-  // Tự động chuyển đổi giữa trang Login và trang Feed chính
   return isAuthenticated ? <MobileHomePage /> : <LoginPage />;
 }
 

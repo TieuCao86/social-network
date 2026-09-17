@@ -52,16 +52,12 @@ export function CommentSection({ postId, commentCount }: CommentSectionProps) {
 
   return (
     <div className="border-t border-gray-100 bg-white p-4">
-      {/* HEADER */}
       <div className="flex items-center gap-2 mb-4">
         <MessageSquare className="w-5 h-5 text-gray-700" />
-
         <span className="font-semibold text-gray-900">Bình luận</span>
-
         <span className="text-gray-500">({commentCount})</span>
       </div>
 
-      {/* INPUT COMMENT */}
       <div className="flex gap-3 mb-6">
         <input
           type="text"
@@ -88,35 +84,30 @@ export function CommentSection({ postId, commentCount }: CommentSectionProps) {
         </button>
       </div>
 
-      {/* LOADING */}
       {isLoading && (
         <div className="text-center text-gray-500 py-6 text-sm">
           Đang tải bình luận...
         </div>
       )}
 
-      {/* ERROR */}
       {isError && (
         <div className="text-center text-red-500 py-6 text-sm">
           Không thể tải bình luận.
         </div>
       )}
 
-      {/* EMPTY */}
       {!isLoading && !isError && comments.length === 0 && (
         <div className="text-center text-gray-500 py-6 text-sm">
           Chưa có bình luận nào.
         </div>
       )}
 
-      {/* COMMENT LIST */}
       {!isLoading && !isError && comments.length > 0 && (
         <div className="space-y-6">
           {comments.map((comment) => (
             <CommentItem key={comment.id} comment={comment} postId={postId} />
           ))}
 
-          {/* LOAD MORE */}
           {hasNextPage && (
             <div className="flex justify-center pt-4">
               <button

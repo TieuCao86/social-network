@@ -21,9 +21,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
 
   const authorName = comment.author.fullName || comment.author.username;
 
-  // ============================================================
-  // REPLY
-  // ============================================================
   const handleReplySubmit = () => {
     const value = replyContent.trim();
 
@@ -36,11 +33,7 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
         postId,
         payload: {
           content: value,
-
-          // Quan trọng:
-          // Reply sẽ có parentId là comment/reply hiện tại
           parentId: comment.id,
-
           mediaList: [],
         },
       },
@@ -48,8 +41,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
         onSuccess: () => {
           setReplyContent("");
           setIsReplying(false);
-
-          // Mở danh sách reply sau khi gửi
           setIsRepliesOpen(true);
         },
       },
@@ -58,11 +49,7 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
 
   return (
     <div>
-      {/* ========================================================
-          COMMENT / REPLY BODY
-          ======================================================== */}
       <div className="flex gap-3.5">
-        {/* AVATAR */}
         <div className="shrink-0">
           {comment.author.avatarFileId ? (
             <img
@@ -77,9 +64,7 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
           )}
         </div>
 
-        {/* BODY */}
         <div className="min-w-0 flex-1">
-          {/* AUTHOR + TIME */}
           <div className="flex items-center gap-1.5 mb-1">
             <span className="font-semibold text-gray-900 text-sm">
               {authorName}
@@ -90,16 +75,12 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
             </span>
           </div>
 
-          {/* CONTENT */}
           {comment.content && (
-            <p className="text-gray-900 text-[15px] whitespace-pre-wrap wrap-break-word leading-relaxed">
+            <p className="text-gray-900 text-[15px] whitespace-pre-wrap break-words leading-relaxed">
               {comment.content}
             </p>
           )}
 
-          {/* ====================================================
-              ACTION BAR
-              ==================================================== */}
           <div className="flex items-center gap-1 mt-2">
             <button
               type="button"
@@ -115,7 +96,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
               <ThumbsDown className="w-4 h-4" />
             </button>
 
-            {/* REPLY */}
             <button
               type="button"
               onClick={() => {
@@ -127,9 +107,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
             </button>
           </div>
 
-          {/* ====================================================
-              REPLY INPUT
-              ==================================================== */}
           {isReplying && (
             <div className="flex gap-2 mt-3">
               <input
@@ -164,9 +141,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
             </div>
           )}
 
-          {/* ====================================================
-              VIEW REPLIES
-              ==================================================== */}
           {comment.replyCount > 0 && (
             <div className="mt-1">
               <button
@@ -179,7 +153,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
                     isRepliesOpen ? "rotate-180" : ""
                   }`}
                 />
-
                 {isRepliesOpen
                   ? "Ẩn phản hồi"
                   : `Xem ${comment.replyCount} phản hồi`}
@@ -188,10 +161,6 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
           )}
         </div>
       </div>
-
-      {/* ========================================================
-          REPLY LIST
-          ======================================================== */}
 
       {isRepliesOpen && <ReplyList commentId={comment.id} postId={postId} />}
     </div>

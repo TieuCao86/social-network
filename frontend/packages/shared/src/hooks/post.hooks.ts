@@ -114,3 +114,37 @@ export function useReactToPost() {
     },
   });
 }
+
+export function useUserPosts(authorId: string, size = 10) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.posts.userPosts(authorId),
+
+    initialPageParam: 0,
+
+    queryFn: async ({ pageParam }) => {
+      const response = await postService.getUserPosts(
+        authorId,
+        pageParam,
+        size,
+      );
+
+      if (!response.success || !response.data) {
+        throw new Error(
+          response.message || "Không lấy được bài viết của người dùng",
+        );
+      }
+
+      return response.data;
+    },
+
+    getNextPageParam: (lastPage) => {
+      if (lastPage.last) {
+        return undefined;
+      }
+
+      return lastPage.number + 1;
+    },
+
+    enabled: !!authorId,
+  });
+}
