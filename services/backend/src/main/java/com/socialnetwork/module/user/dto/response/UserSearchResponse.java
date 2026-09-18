@@ -1,4 +1,4 @@
-package com.socialnetwork.module.relationship.dto.response;
+package com.socialnetwork.module.user.dto.response;
 
 import com.socialnetwork.module.relationship.entity.enums.RelationshipStatus;
 import lombok.Builder;
@@ -8,7 +8,11 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class RelationshipSummaryResponse {
+public class UserSearchResponse {
+
     private UUID userId;
+
+    private String username;
+
     private RelationshipStatus relationshipStatus;
 }

@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class FollowResponse {
 
-    private UUID id;
+    private UUID followId;
 
     private UUID followerId;
 

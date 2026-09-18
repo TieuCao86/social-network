@@ -37,10 +37,11 @@ public interface PostMapper {
     @Mapping(target = "shareCount", constant = "0L")
     PostResponse toResponse(Post post);
 
-    @Mapping(target = "id", source = "id")
+    @Mapping(target = "userId", source = "id")
     @Mapping(target = "username", source = "username")
     PostAuthorResponse toAuthorResponse(User user);
 
+    @Mapping(target = "mediaId", source = "id")
     MediaItemResponse toMediaResponse(PostMedia postMedia);
 
     List<MediaItemResponse> toMediaResponseList(

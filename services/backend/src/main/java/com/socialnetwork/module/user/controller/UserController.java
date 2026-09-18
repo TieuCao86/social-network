@@ -1,12 +1,20 @@
 package com.socialnetwork.module.user.controller;
 
+import com.socialnetwork.common.exception.BusinessException;
+import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.common.response.ApiResponse;
 import com.socialnetwork.common.security.CustomUserDetails;
 import com.socialnetwork.module.user.dto.response.UserResponse;
+import com.socialnetwork.module.user.dto.response.UserSearchResponse;
 import com.socialnetwork.module.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +42,42 @@ public class UserController {
 
         return ApiResponse.success(
                 "Lấy thông tin người dùng thành công",
+                response
+        );
+    }
+
+    @Operation(summary = "Tìm kiếm người dùng")
+    @GetMapping("/search")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Page<UserSearchResponse>> searchUsers(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+
+            @RequestParam(defaultValue = "") String q,
+
+            @ParameterObject
+            @PageableDefault(
+                    size = 10,
+                    sort = "username",
+                    direction = Sort.Direction.ASC
+            )
+            Pageable pageable
+    ) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        UUID currentUserId =
+                userDetails.getUser().getId();
+
+        Page<UserSearchResponse> response =
+                userService.searchUsers(
+                        currentUserId,
+                        q,
+                        pageable
+                );
+
+        return ApiResponse.success(
+                "Tìm kiếm người dùng thành công",
                 response
         );
     }

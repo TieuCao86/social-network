@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class FriendshipResponse {
 
-    private UUID id;
+    private UUID friendshipId;
 
     private UUID requesterId;
 

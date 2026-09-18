@@ -2,8 +2,11 @@ package com.socialnetwork.module.user.service.impl;
 
 import com.socialnetwork.common.exception.BusinessException;
 import com.socialnetwork.common.exception.ErrorCode;
+import com.socialnetwork.module.relationship.entity.enums.RelationshipStatus;
+import com.socialnetwork.module.relationship.service.RelationshipService;
 import com.socialnetwork.module.user.dto.request.UserCreateRequest;
 import com.socialnetwork.module.user.dto.response.UserResponse;
+import com.socialnetwork.module.user.dto.response.UserSearchResponse;
 import com.socialnetwork.module.user.entity.User;
 import com.socialnetwork.module.user.entity.UserProfile;
 import com.socialnetwork.module.user.entity.UserSetting;
@@ -13,6 +16,8 @@ import com.socialnetwork.module.user.repository.UserRepository;
 import com.socialnetwork.module.user.repository.UserSettingRepository;
 import com.socialnetwork.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +31,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final UserSettingRepository userSettingRepository;
+
+    private final RelationshipService relationshipService;
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -116,5 +123,45 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         return userMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserSearchResponse> searchUsers(
+            UUID currentUserId,
+            String keyword,
+            Pageable pageable
+    ) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        String searchKeyword = keyword.trim();
+
+        return userRepository
+                .findByUsernameContainingIgnoreCaseAndIdNot(
+                        searchKeyword,
+                        currentUserId,
+                        pageable
+                )
+                .map(user -> UserSearchResponse.builder()
+                        .userId(user.getId())
+                        .username(user.getUsername())
+                        .relationshipStatus(
+                                relationshipService.getStatus(
+                                        currentUserId,
+                                        user.getId()
+                                )
+                        )
+                        .build()
+                )
+                .map(response -> {
+                    if (response.getRelationshipStatus() == RelationshipStatus.BLOCKING
+                            || response.getRelationshipStatus() == RelationshipStatus.BLOCKED_BY) {
+                        return null;
+                    }
+
+                    return response;
+                });
     }
 }

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Home,
-  Compass,
+  Video,
+  ShoppingBag,
+  Users,
+  Gamepad2,
   MessageSquare,
   Bell,
-  User,
   Search,
   Settings,
   HelpCircle,
@@ -12,7 +14,6 @@ import {
   Moon,
   LogOut,
   ChevronRight,
-  Users,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -40,20 +41,36 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const tabs = [
     { key: "home", label: "Trang chủ", icon: Home },
-    { key: "msg", label: "Tin nhắn", icon: MessageSquare },
-    { key: "notif", label: "Thông báo", icon: Bell },
-    { key: "explore", label: "Khám phá", icon: Compass },
-    { key: "profile", label: "Cá nhân", icon: User },
+    { key: "watch", label: "Phim", icon: Video },
+    { key: "shop", label: "Mua sắm", icon: ShoppingBag },
+    { key: "groups", label: "Nhóm", icon: Users },
+    { key: "games", label: "Trò chơi", icon: Gamepad2 },
   ];
 
+  const handleGoHome = () => {
+    setActiveTab("home");
+    navigate("/");
+  };
+
   return (
-    <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-      <div className="flex items-center space-x-4 md:space-x-6">
+    <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-2.5 grid grid-cols-3 items-center sticky top-0 z-30 shadow-sm w-full">
+      {/* 1. CỘT TRÁI: Logo & Tìm kiếm */}
+      <div className="flex items-center space-x-4 md:space-x-6 justify-start">
         <div
-          className="flex items-center cursor-pointer"
-          onClick={() => setActiveTab("home")}
+          className="flex items-center cursor-pointer shrink-0"
+          onClick={handleGoHome}
         >
           <img
             src={logoImg}
@@ -62,7 +79,7 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
           />
         </div>
 
-        <div className="relative w-44 sm:w-64 md:w-72">
+        <div className="relative w-36 sm:w-56 md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             type="text"
@@ -72,7 +89,8 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
         </div>
       </div>
 
-      <nav className="hidden md:flex items-center space-x-2 lg:space-x-6 text-xs font-semibold text-gray-600">
+      {/* 2. CỘT GIỮA: Các Tabs được canh giữa tuyệt đối */}
+      <nav className="hidden md:flex items-center justify-center space-x-1 lg:space-x-2 text-xs font-semibold text-gray-600">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -80,8 +98,14 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
           return (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex flex-col items-center pb-1 pt-1 px-3 transition border-b-2 ${
+              onClick={() => {
+                if (tab.key === "home") {
+                  handleGoHome();
+                } else {
+                  setActiveTab(tab.key);
+                }
+              }}
+              className={`flex flex-col items-center pb-1 pt-1 px-4 transition border-b-2 rounded-lg hover:bg-gray-50 ${
                 isActive
                   ? "text-teal-700 border-teal-600 font-bold"
                   : "border-transparent hover:text-teal-600"
@@ -94,7 +118,8 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
         })}
       </nav>
 
-      <div className="flex items-center space-x-2 md:space-x-3">
+      {/* 3. CỘT PHẢI: Thông báo, Tin nhắn & Avatar Menu */}
+      <div className="flex items-center space-x-2 md:space-x-3 justify-end">
         <button className="relative w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition">
           <Bell className="w-4 h-4 text-gray-600" />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
@@ -119,7 +144,6 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
 
           {userMenuOpen && (
             <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-3 text-sm z-50">
-              {/* Bấm vào khối này (bao gồm cả tên Cao Quốc Trung) sẽ chuyển sang trang cá nhân */}
               <div
                 onClick={() => {
                   setUserMenuOpen(false);

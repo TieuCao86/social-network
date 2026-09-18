@@ -1,12 +1,18 @@
 package com.socialnetwork.module.relationship.controller;
 
+import com.socialnetwork.common.exception.BusinessException;
+import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.common.response.ApiResponse;
 import com.socialnetwork.common.security.CustomUserDetails;
+import com.socialnetwork.module.relationship.dto.response.BlockedUserResponse;
 import com.socialnetwork.module.relationship.dto.response.FriendshipResponse;
 import com.socialnetwork.module.relationship.service.FriendshipService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -213,5 +219,35 @@ public class FriendshipController {
                 friendshipService.countFriends(currentUserId);
 
         return ApiResponse.success(data);
+    }
+
+    @GetMapping("/blocks")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Page<BlockedUserResponse>> getBlockedUsers(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @ParameterObject
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable
+    ) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        UUID currentUserId = userDetails.getUser().getId();
+
+        Page<BlockedUserResponse> response =
+                friendshipService.getBlockedUsers(
+                        currentUserId,
+                        pageable
+                );
+
+        return ApiResponse.success(
+                "Lấy danh sách người đã chặn thành công",
+                response
+        );
     }
 }

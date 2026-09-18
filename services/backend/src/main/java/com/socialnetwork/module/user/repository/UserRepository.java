@@ -1,6 +1,8 @@
 package com.socialnetwork.module.user.repository;
 
 import com.socialnetwork.module.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -8,10 +10,7 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    Optional<User> findByEmailOrPhone(
-            String email,
-            String phone
-    );
+    Optional<User> findByEmailOrPhone(String email, String phone);
 
     Optional<User> findByUsername(String username);
 
@@ -27,5 +26,15 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmailOrPhone(String email, String phone);
 
-    boolean existsByUsernameOrEmailOrPhone(String username, String email, String phone);
+    boolean existsByUsernameOrEmailOrPhone(
+            String username,
+            String email,
+            String phone
+    );
+
+    Page<User> findByUsernameContainingIgnoreCaseAndIdNot(
+            String username,
+            UUID currentUserId,
+            Pageable pageable
+    );
 }

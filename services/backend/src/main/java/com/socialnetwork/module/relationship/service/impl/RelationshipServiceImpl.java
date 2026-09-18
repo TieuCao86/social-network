@@ -5,6 +5,7 @@ import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.module.relationship.dto.response.RelationshipResponse;
 import com.socialnetwork.module.relationship.entity.Follow;
 import com.socialnetwork.module.relationship.entity.Friendship;
+import com.socialnetwork.module.relationship.entity.enums.RelationshipStatus;
 import com.socialnetwork.module.relationship.mapper.RelationshipMapper;
 import com.socialnetwork.module.relationship.repository.FollowRepository;
 import com.socialnetwork.module.relationship.repository.FriendshipRepository;
@@ -49,6 +50,80 @@ public class RelationshipServiceImpl implements RelationshipService {
                 currentUserFollow,
                 targetUserFollow
         );
+    }
+
+    @Override
+    public RelationshipStatus getStatus(
+            UUID currentUserId,
+            UUID targetUserId
+    ) {
+        RelationshipValidator.validateNotSelf(
+                currentUserId,
+                targetUserId,
+                ErrorCode.CANNOT_FRIEND_SELF
+        );
+
+        Friendship friendship =
+                friendshipRepository
+                        .findBetween(currentUserId, targetUserId)
+                        .orElse(null);
+
+        // ============================================================
+        // FRIENDSHIP
+        // ============================================================
+
+        if (friendship != null) {
+
+            switch (friendship.getStatus()) {
+
+                case ACCEPTED:
+                    return RelationshipStatus.FRIENDS;
+
+                case BLOCKED:
+                    if (friendship.getRequesterId().equals(currentUserId)) {
+                        return RelationshipStatus.BLOCKING;
+                    }
+
+                    return RelationshipStatus.BLOCKED_BY;
+
+                case PENDING:
+                    if (friendship.getRequesterId().equals(currentUserId)) {
+                        return RelationshipStatus.REQUEST_SENT;
+                    }
+
+                    return RelationshipStatus.REQUEST_RECEIVED;
+            }
+        }
+
+        // ============================================================
+        // FOLLOW
+        // ============================================================
+
+        boolean currentUserFollowing =
+                followRepository.existsByFollowerIdAndFollowingId(
+                        currentUserId,
+                        targetUserId
+                );
+
+        boolean targetUserFollowing =
+                followRepository.existsByFollowerIdAndFollowingId(
+                        targetUserId,
+                        currentUserId
+                );
+
+        if (currentUserFollowing && targetUserFollowing) {
+            return RelationshipStatus.FOLLOWING_EACH_OTHER;
+        }
+
+        if (currentUserFollowing) {
+            return RelationshipStatus.FOLLOWING;
+        }
+
+        if (targetUserFollowing) {
+            return RelationshipStatus.FOLLOWED_BY;
+        }
+
+        return RelationshipStatus.NONE;
     }
 
 }

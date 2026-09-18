@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -21,7 +20,7 @@ import java.util.UUID;
 public class ReactionUserResponse {
 
     @Schema(description = "ID của lượt reaction")
-    private UUID id;
+    private UUID reactionId;
 
     @Schema(description = "ID người dùng")
     private UUID userId;

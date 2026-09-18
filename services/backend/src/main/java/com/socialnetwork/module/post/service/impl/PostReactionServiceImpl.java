@@ -141,7 +141,7 @@ public class PostReactionServiceImpl implements PostReactionService {
         return reactionsPage.map(reaction -> {
             User user = userMap.get(reaction.getUserId());
             return ReactionUserResponse.builder()
-                    .id(reaction.getId())
+                    .reactionId(reaction.getId())
                     .userId(reaction.getUserId())
                     .username(user != null ? user.getUsername() : "Unknown")
                     .email(user != null ? user.getEmail() : null)

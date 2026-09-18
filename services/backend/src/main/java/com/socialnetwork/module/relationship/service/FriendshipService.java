@@ -1,5 +1,6 @@
 package com.socialnetwork.module.relationship.service;
 
+import com.socialnetwork.module.relationship.dto.response.BlockedUserResponse;
 import com.socialnetwork.module.relationship.dto.response.FriendshipResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +35,11 @@ public interface FriendshipService {
     );
 
     Page<FriendshipResponse> getFriends(
+            UUID currentUserId,
+            Pageable pageable
+    );
+
+    Page<BlockedUserResponse> getBlockedUsers(
             UUID currentUserId,
             Pageable pageable
     );

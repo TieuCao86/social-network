@@ -2,6 +2,7 @@ package com.socialnetwork.module.relationship.service.impl;
 
 import com.socialnetwork.common.exception.BusinessException;
 import com.socialnetwork.common.exception.ErrorCode;
+import com.socialnetwork.module.relationship.dto.response.BlockedUserResponse;
 import com.socialnetwork.module.relationship.dto.response.FriendshipResponse;
 import com.socialnetwork.module.relationship.entity.Friendship;
 import com.socialnetwork.module.relationship.entity.enums.FriendshipStatus;
@@ -9,6 +10,8 @@ import com.socialnetwork.module.relationship.mapper.FriendshipMapper;
 import com.socialnetwork.module.relationship.repository.FriendshipRepository;
 import com.socialnetwork.module.relationship.service.FriendshipService;
 import com.socialnetwork.module.relationship.util.RelationshipValidator;
+import com.socialnetwork.module.user.entity.User;
+import com.socialnetwork.module.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,8 @@ import java.util.UUID;
 public class FriendshipServiceImpl implements FriendshipService {
 
     private final FriendshipRepository friendshipRepository;
+    private final UserRepository userRepository;
+
     private final FriendshipMapper friendshipMapper;
 
     // ============================================================
@@ -214,6 +219,39 @@ public class FriendshipServiceImpl implements FriendshipService {
                 FriendshipStatus.PENDING,
                 pageable
         ).map(friendshipMapper::toResponse);
+    }
+
+    @Override
+    public Page<BlockedUserResponse> getBlockedUsers(
+            UUID currentUserId,
+            Pageable pageable
+    ) {
+        return friendshipRepository
+                .findAllByUserIdAndStatus(
+                        currentUserId,
+                        FriendshipStatus.BLOCKED,
+                        pageable
+                )
+                .map(friendship -> {
+
+                    UUID blockedUserId;
+
+                    if (friendship.getRequesterId().equals(currentUserId)) {
+                        blockedUserId = friendship.getAddresseeId();
+                    } else {
+                        blockedUserId = friendship.getRequesterId();
+                    }
+
+                    User blockedUser = userRepository.findById(blockedUserId)
+                            .orElseThrow(() ->
+                                    new BusinessException(ErrorCode.USER_NOT_FOUND)
+                            );
+
+                    return BlockedUserResponse.builder()
+                            .userId(blockedUser.getId())
+                            .username(blockedUser.getUsername())
+                            .build();
+                });
     }
 
     // ============================================================

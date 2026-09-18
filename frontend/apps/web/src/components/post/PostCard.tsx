@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  CircleCheck,
   Globe,
-  Heart,
   MessageSquare,
   MoreHorizontal,
   Play,
   Share2,
-  ThumbsUp,
 } from "lucide-react";
 
 import {
@@ -18,48 +15,19 @@ import {
 } from "@social/shared";
 
 import { CommentSection } from "../comment/CommentSection";
+import { formatRelativeTime } from "@social/shared";
 
 interface PostCardProps {
   post: PostResponse;
 }
 
 const reactions = [
-  {
-    type: ReactionType.LIKE,
-    emoji: "👍",
-    label: "Like",
-    color: "text-teal-600",
-  },
-  {
-    type: ReactionType.LOVE,
-    emoji: "❤️",
-    label: "Love",
-    color: "text-red-500",
-  },
-  {
-    type: ReactionType.HAHA,
-    emoji: "😂",
-    label: "Haha",
-    color: "text-yellow-500",
-  },
-  {
-    type: ReactionType.WOW,
-    emoji: "😮",
-    label: "Wow",
-    color: "text-yellow-600",
-  },
-  {
-    type: ReactionType.SAD,
-    emoji: "😢",
-    label: "Sad",
-    color: "text-blue-500",
-  },
-  {
-    type: ReactionType.ANGRY,
-    emoji: "😡",
-    label: "Angry",
-    color: "text-orange-600",
-  },
+  { type: ReactionType.LIKE, emoji: "👍", label: "Thích", color: "text-teal-600" },
+  { type: ReactionType.LOVE, emoji: "❤️", label: "Yêu thích", color: "text-red-500" },
+  { type: ReactionType.HAHA, emoji: "😂", label: "Haha", color: "text-yellow-500" },
+  { type: ReactionType.WOW, emoji: "😮", label: "Wow", color: "text-yellow-600" },
+  { type: ReactionType.SAD, emoji: "😢", label: "Buồn", color: "text-blue-500" },
+  { type: ReactionType.ANGRY, emoji: "😡", label: "Phẫn nộ", color: "text-orange-600" },
 ];
 
 export function PostCard({ post }: PostCardProps) {
@@ -67,19 +35,14 @@ export function PostCard({ post }: PostCardProps) {
 
   const [showReactions, setShowReactions] = useState(false);
   const [showComments, setShowComments] = useState(false);
-
-  const [reactionTimer, setReactionTimer] = useState<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const [reactionTimer, setReactionTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const [userReaction, setUserReaction] = useState<ReactionType | undefined>(
     post.currentUserReaction ?? undefined,
   );
-
   const [reactionCount, setReactionCount] = useState(post.totalReactions ?? 0);
 
   const { data: currentCommentCount } = useCountComments(post.id);
-
   const displayedCommentCount = currentCommentCount ?? post.commentCount ?? 0;
 
   useEffect(() => {
@@ -89,21 +52,17 @@ export function PostCard({ post }: PostCardProps) {
 
   useEffect(() => {
     return () => {
-      if (reactionTimer) {
-        clearTimeout(reactionTimer);
-      }
+      if (reactionTimer) clearTimeout(reactionTimer);
     };
   }, [reactionTimer]);
 
   const reactToPost = useReactToPost();
 
-  const activeReaction = reactions.find(
-    (reaction) => reaction.type === userReaction,
-  );
+  const activeReaction = reactions.find((r) => r.type === userReaction);
 
   const topReactions = post.topReactions
     ?.slice(0, 3)
-    .map((type) => reactions.find((reaction) => reaction.type === type))
+    .map((type) => reactions.find((r) => r.type === type))
     .filter(Boolean);
 
   const handleReactionEnter = () => {
@@ -111,7 +70,6 @@ export function PostCard({ post }: PostCardProps) {
       clearTimeout(reactionTimer);
       setReactionTimer(null);
     }
-
     setShowReactions(true);
   };
 
@@ -120,58 +78,37 @@ export function PostCard({ post }: PostCardProps) {
       setShowReactions(false);
       setReactionTimer(null);
     }, 200);
-
     setReactionTimer(timer);
   };
 
   const handleReaction = (type: ReactionType) => {
     setShowReactions(false);
-
     if (reactionTimer) {
       clearTimeout(reactionTimer);
       setReactionTimer(null);
     }
 
     const isRemoving = userReaction === type;
-
     const previousReaction = userReaction;
     const previousCount = reactionCount;
-
     const nextReaction = isRemoving ? undefined : type;
 
     setUserReaction(nextReaction);
-
     setReactionCount((prev) => {
-      if (isRemoving) {
-        return Math.max(0, prev - 1);
-      }
-
-      if (!previousReaction) {
-        return prev + 1;
-      }
-
+      if (isRemoving) return Math.max(0, prev - 1);
+      if (!previousReaction) return prev + 1;
       return prev;
     });
 
     reactToPost.mutate(
-      {
-        postId: post.id,
-        payload: {
-          type,
-        },
-      },
+      { postId: post.id, payload: { type } },
       {
         onSuccess: (response) => {
           const data = response.data;
-
-          if (!data) {
-            return;
-          }
-
+          if (!data) return;
           setUserReaction(data.currentUserReaction ?? undefined);
           setReactionCount(data.totalReactions ?? 0);
         },
-
         onError: () => {
           setUserReaction(previousReaction);
           setReactionCount(previousCount);
@@ -180,17 +117,9 @@ export function PostCard({ post }: PostCardProps) {
     );
   };
 
-  const handleMainButtonClick = () => {
-    handleReaction(userReaction ?? ReactionType.LIKE);
-  };
-
-  const handleCommentClick = () => {
-    setShowComments((prev) => !prev);
-  };
-
   return (
     <article className="bg-white rounded-xl shadow-sm overflow-hidden text-xs">
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <img
@@ -201,49 +130,33 @@ export function PostCard({ post }: PostCardProps) {
             alt={post.author.fullName || post.author.username}
             className="w-10 h-10 rounded-full object-cover"
           />
-
           <div>
             <h4 className="font-bold text-sm text-gray-900">
               {post.author.fullName || post.author.username}
             </h4>
-
             <div className="flex items-center space-x-1 text-xs text-gray-500">
-              <span>{post.createdAt}</span>
+              <span>{formatRelativeTime(post.createdAt)}</span>
               <span>·</span>
               <Globe className="w-3 h-3" />
             </div>
           </div>
         </div>
-
-        <button
-          type="button"
-          className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition"
-        >
+        <button type="button" className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition">
           <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
 
-      {/* ================= CONTENT ================= */}
-      {post.content && (
-        <div className="px-4 text-sm pb-3 text-gray-800">{post.content}</div>
-      )}
+      {/* CONTENT */}
+      {post.content && <div className="px-4 text-sm pb-3 text-gray-800">{post.content}</div>}
 
-      {/* ================= MEDIA ================= */}
+      {/* MEDIA */}
       {firstMedia && (
         <div className="bg-black relative h-72 flex items-center justify-center">
           {firstMedia.type === "IMAGE" ? (
-            <img
-              src={firstMedia.url}
-              alt="Post media"
-              className="w-full h-full object-cover"
-            />
+            <img src={firstMedia.url} alt="Post media" className="w-full h-full object-cover" />
           ) : (
             <>
-              <video
-                src={firstMedia.url}
-                className="w-full h-full object-cover"
-              />
-
+              <video src={firstMedia.url} className="w-full h-full object-cover" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white text-xl shadow-lg cursor-pointer hover:bg-red-700 transition">
                   <Play className="w-6 h-6 ml-1 fill-white" />
@@ -254,31 +167,69 @@ export function PostCard({ post }: PostCardProps) {
         </div>
       )}
 
-      {/* ================= STATS ================= */}
-      <div className="px-4 py-2.5 flex items-center justify-between text-gray-500 text-xs border-b border-gray-200">
-        {/* Tổng cảm xúc - bình luận - chia sẻ */}
-        <div className="flex items-center gap-5">
-          {/* Tổng reaction */}
-          <span className="flex items-center gap-1.5">
-            <ThumbsUp className="w-4 h-4" />
-            <span>{reactionCount}</span>
-          </span>
+      {/* UNIFIED TOP BAR: STATS & INTERACTIVE BUTTONS */}
+      <div className="px-3 py-2 flex items-center justify-between text-xs border-b border-gray-200 relative">
+        {/* Left: Interactive Buttons (Like with Reaction Hover, Comment, Share) */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* LIKE BUTTON WITH REACTION HOVER POPUP */}
+          <div
+            className="relative"
+            onMouseEnter={handleReactionEnter}
+            onMouseLeave={handleReactionLeave}
+          >
+            {showReactions && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white shadow-xl rounded-full px-2 py-1.5 flex items-center gap-2 border border-gray-200 z-20">
+                {reactions.map((r) => (
+                  <button
+                    key={r.type}
+                    type="button"
+                    onClick={() => handleReaction(r.type)}
+                    className="text-2xl hover:scale-125 transition-transform duration-150 p-1"
+                    title={r.label}
+                  >
+                    {r.emoji}
+                  </button>
+                ))}
+              </div>
+            )}
 
-          {/* Tổng comment */}
-          <span className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleReaction(userReaction ?? ReactionType.LIKE)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold hover:bg-gray-100 transition ${
+                activeReaction ? activeReaction.color : "text-gray-600"
+              }`}
+            >
+              <span className="text-base">{activeReaction ? activeReaction.emoji : "👍"}</span>
+              <span>{activeReaction ? activeReaction.label : "Thích"}</span>
+              <span className="ml-1 text-gray-500 font-normal">({reactionCount})</span>
+            </button>
+          </div>
+
+          {/* COMMENT BUTTON */}
+          <button
+            type="button"
+            onClick={() => setShowComments((prev) => !prev)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition"
+          >
             <MessageSquare className="w-4 h-4" />
-            <span>{displayedCommentCount}</span>
-          </span>
+            <span>Bình luận</span>
+            <span className="text-gray-500 font-normal">({displayedCommentCount})</span>
+          </button>
 
-          {/* Tổng share */}
-          <span className="flex items-center gap-1.5">
+          {/* SHARE BUTTON */}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-gray-600 hover:bg-gray-100 transition"
+          >
             <Share2 className="w-4 h-4" />
-            <span>{post.shareCount ?? 0}</span>
-          </span>
+            <span>Chia sẻ</span>
+            <span className="text-gray-500 font-normal">({post.shareCount ?? 0})</span>
+          </button>
         </div>
 
-        {/* 3 reaction nhiều nhất */}
-        <div className="flex items-center">
+        {/* Right: Top Reactions Preview Icons */}
+        <div className="flex items-center pr-1">
           {topReactions?.map((reaction, index) =>
             reaction ? (
               <span
@@ -293,7 +244,7 @@ export function PostCard({ post }: PostCardProps) {
         </div>
       </div>
 
-      {/* ================= COMMENTS ================= */}
+      {/* COMMENTS SECTION */}
       {showComments && (
         <CommentSection postId={post.id} commentCount={displayedCommentCount} />
       )}

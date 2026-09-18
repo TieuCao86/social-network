@@ -13,15 +13,18 @@ import java.util.UUID;
 @Builder
 public class PostResponse {
 
-    private UUID id;
+    private UUID postId;
 
     private PostAuthorResponse author;
 
     private String content;
+
     private PostVisibility visibility;
 
     private long totalReactions;
+
     private long commentCount;
+
     private long shareCount;
 
     private ReactionType currentUserReaction;
@@ -31,5 +34,6 @@ public class PostResponse {
     private List<MediaItemResponse> mediaList;
 
     private Instant createdAt;
+
     private Instant updatedAt;
 }

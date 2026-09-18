@@ -10,9 +10,12 @@ import java.util.UUID;
 @Builder
 public class MediaItemResponse {
 
-    private UUID id;
+    private UUID mediaId;
+
     private UUID fileId;
+
     private MediaType type;
+
     private int sortOrder;
 
     private long reactionCount;

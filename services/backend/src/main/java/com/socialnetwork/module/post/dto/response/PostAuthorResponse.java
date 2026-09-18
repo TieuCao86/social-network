@@ -9,7 +9,7 @@ import java.util.UUID;
 @Builder
 public class PostAuthorResponse {
 
-    private UUID id;
+    private UUID userId;
 
     private String username;
 
