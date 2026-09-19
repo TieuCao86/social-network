@@ -1,12 +1,17 @@
-export type UserStatus =
-  | "ACTIVE"
-  | "INACTIVE"
-  | "BLOCKED";
+export type UserStatus = "ACTIVE" | "INACTIVE" | "BLOCKED";
 
-export type UserRole =
-  | "USER"
-  | "MODERATOR"
-  | "ADMIN";
+export type UserRole = "USER" | "MODERATOR" | "ADMIN";
+
+export type RelationshipStatus =
+  | "NONE"
+  | "REQUEST_SENT"
+  | "REQUEST_RECEIVED"
+  | "FRIENDS"
+  | "BLOCKING"
+  | "BLOCKED_BY"
+  | "FOLLOWING"
+  | "FOLLOWED_BY"
+  | "FOLLOWING_EACH_OTHER";
 
 export interface UserResponse {
   userId: string;
@@ -17,4 +22,12 @@ export interface UserResponse {
   role: UserRole;
   emailVerified: boolean;
   phoneVerified: boolean;
+}
+
+export interface UserSearchResponse {
+  userId: string;
+  username: string;
+  fullName: string | null;
+  avatarFileId: string | null;
+  relationshipStatus: RelationshipStatus;
 }

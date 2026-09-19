@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Camera,
   Plus,
@@ -271,7 +271,7 @@ export function ProfilePage() {
             ) : (
               <div className="space-y-4">
                 {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.postId} post={post} />
                 ))}
               </div>
             )}

@@ -1,8 +1,11 @@
 package com.socialnetwork.module.user.mapper;
 
+import com.socialnetwork.module.relationship.entity.enums.RelationshipStatus;
 import com.socialnetwork.module.user.dto.request.UserCreateRequest;
 import com.socialnetwork.module.user.dto.response.UserResponse;
+import com.socialnetwork.module.user.dto.response.UserSearchResponse;
 import com.socialnetwork.module.user.entity.User;
+import com.socialnetwork.module.user.entity.UserProfile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -19,4 +22,14 @@ public interface UserMapper {
 
     @Mapping(source = "id", target = "userId")
     UserResponse toResponse(User user);
+
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.username", target = "username")
+    @Mapping(source = "profile.fullName", target = "fullName")
+    @Mapping(source = "profile.avatarFileId", target = "avatarFileId")
+    UserSearchResponse toSearchResponse(
+            User user,
+            UserProfile profile,
+            RelationshipStatus relationshipStatus
+    );
 }

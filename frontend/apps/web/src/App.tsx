@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LoginPage } from "./pages/LoginPage";
 import { HomePage } from "./pages/HomePage";
 import { ProfilePage } from "./pages/ProfilePage";
+import {SearchPage} from "./pages/SearchPage";
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
           path="*"
           element={<Navigate to="/home" replace />}
         />
+
+        <Route path="/search" element={<SearchPage />} />
       </Routes>
     </BrowserRouter>
   );

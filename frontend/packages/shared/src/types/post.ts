@@ -1,8 +1,18 @@
-export type PostVisibility = "PUBLIC" | "FRIENDS" | "PRIVATE";
+export type PostVisibility =
+  | "PUBLIC"
+  | "FRIENDS"
+  | "PRIVATE";
 
-export type PostStatus = "ACTIVE" | "ARCHIVED" | "DELETED";
+export type PostStatus =
+  | "ACTIVE"
+  | "ARCHIVED"
+  | "DELETED";
 
-export type MediaType = "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT";
+export type MediaType =
+  | "IMAGE"
+  | "VIDEO"
+  | "AUDIO"
+  | "DOCUMENT";
 
 export const ReactionType = {
   LIKE: "LIKE",
@@ -13,25 +23,26 @@ export const ReactionType = {
   ANGRY: "ANGRY",
 } as const;
 
-export type ReactionType = (typeof ReactionType)[keyof typeof ReactionType];
+export type ReactionType =
+  (typeof ReactionType)[keyof typeof ReactionType];
 
 export interface PostAuthorResponse {
-  id: string;
+  userId: string;
   username: string;
   fullName: string | null;
   avatarFileId: string | null;
 }
 
 export interface MediaItemResponse {
-  id: string;
+  mediaId: string;
   fileId: string;
-  type: "IMAGE" | "VIDEO";
+  type: MediaType;
   sortOrder: number;
   reactionCount: number;
 }
 
 export interface PostResponse {
-  id: string;
+  postId: string;
   author: PostAuthorResponse;
   content: string;
   visibility: PostVisibility;
@@ -53,7 +64,7 @@ export interface ReactionResponse {
 }
 
 export interface ReactionUserResponse {
-  id: string;
+  reactionId: string;
   userId: string;
   username: string;
   email: string;

@@ -139,29 +139,23 @@ public class UserServiceImpl implements UserService {
         String searchKeyword = keyword.trim();
 
         return userRepository
-                .findByUsernameContainingIgnoreCaseAndIdNot(
-                        searchKeyword,
-                        currentUserId,
-                        pageable
-                )
-                .map(user -> UserSearchResponse.builder()
-                        .userId(user.getId())
-                        .username(user.getUsername())
-                        .relationshipStatus(
-                                relationshipService.getStatus(
-                                        currentUserId,
-                                        user.getId()
-                                )
-                        )
-                        .build()
-                )
-                .map(response -> {
-                    if (response.getRelationshipStatus() == RelationshipStatus.BLOCKING
-                            || response.getRelationshipStatus() == RelationshipStatus.BLOCKED_BY) {
-                        return null;
-                    }
+                .searchUsers(currentUserId, searchKeyword, pageable)
+                .map(user -> {
+                    RelationshipStatus relationshipStatus =
+                            relationshipService.getStatus(
+                                    currentUserId,
+                                    user.getId()
+                            );
 
-                    return response;
+                    UserProfile profile =
+                            userProfileRepository.findById(user.getId())
+                                    .orElse(null);
+
+                    return userMapper.toSearchResponse(
+                            user,
+                            profile,
+                            relationshipStatus
+                    );
                 });
     }
 }

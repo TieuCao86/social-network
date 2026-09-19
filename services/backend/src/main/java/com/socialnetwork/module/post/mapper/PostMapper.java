@@ -18,6 +18,7 @@ import java.util.UUID;
 @Mapper(componentModel = "spring")
 public interface PostMapper {
 
+    @Mapping(target = "postId", source = "post.id")
     @Mapping(target = "mediaList", source = "mediaList")
     @Mapping(target = "totalReactions", source = "post.reactionCount")
     @Mapping(target = "commentCount", source = "post.commentCount")
@@ -29,6 +30,7 @@ public interface PostMapper {
             List<PostMedia> mediaList
     );
 
+    @Mapping(target = "postId", source = "id")
     @Mapping(target = "mediaList", ignore = true)
     @Mapping(target = "totalReactions", source = "reactionCount")
     @Mapping(target = "commentCount", source = "commentCount")

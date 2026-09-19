@@ -14,5 +14,9 @@ public class UserSearchResponse {
 
     private String username;
 
+    private String fullName;
+
+    private UUID avatarFileId;
+
     private RelationshipStatus relationshipStatus;
 }

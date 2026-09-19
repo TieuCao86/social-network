@@ -29,17 +29,8 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
   const navigate = useNavigate();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -64,6 +55,15 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
     navigate("/");
   };
 
+  // Hàm xử lý khi nhấn Enter ở ô tìm kiếm
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // Ngăn form submit mặc định của trình duyệt
+      if (searchQuery.trim()) {
+        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      }
+    }
+  };
   return (
     <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-2.5 grid grid-cols-3 items-center sticky top-0 z-30 shadow-sm w-full">
       {/* 1. CỘT TRÁI: Logo & Tìm kiếm */}
@@ -80,12 +80,24 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
         </div>
 
         <div className="relative w-36 sm:w-56 md:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            className="w-full bg-slate-100 pl-8 pr-4 py-1.5 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
-          />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchQuery.trim()) {
+                navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+              }
+            }}
+            className="relative w-36 sm:w-56 md:w-64"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm kiếm..."
+              className="w-full bg-slate-100 pl-8 pr-4 py-1.5 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+            />
+          </form>
         </div>
       </div>
 

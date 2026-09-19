@@ -10,21 +10,21 @@ export type CommentStatus =
   | "FLAGGED";
 
 export interface CommentAuthorResponse {
-  id: string;
+  userId: string;
   username: string;
   fullName: string | null;
   avatarFileId: string | null;
 }
 
 export interface CommentMediaResponse {
-  id: string;
+  mediaId: string;
   fileId: string;
   type: CommentMediaType;
   sortOrder: number;
 }
 
 export interface CommentResponse {
-  id: string;
+  commentId: string;
   postId: string;
   author: CommentAuthorResponse;
   parentId: string | null;

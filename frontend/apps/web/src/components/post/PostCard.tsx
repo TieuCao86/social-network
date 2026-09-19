@@ -42,13 +42,13 @@ export function PostCard({ post }: PostCardProps) {
   );
   const [reactionCount, setReactionCount] = useState(post.totalReactions ?? 0);
 
-  const { data: currentCommentCount } = useCountComments(post.id);
+  const { data: currentCommentCount } = useCountComments(post.postId);
   const displayedCommentCount = currentCommentCount ?? post.commentCount ?? 0;
 
   useEffect(() => {
     setUserReaction(post.currentUserReaction ?? undefined);
     setReactionCount(post.totalReactions ?? 0);
-  }, [post.id, post.currentUserReaction, post.totalReactions]);
+  }, [post.postId, post.currentUserReaction, post.totalReactions]);
 
   useEffect(() => {
     return () => {
@@ -101,7 +101,7 @@ export function PostCard({ post }: PostCardProps) {
     });
 
     reactToPost.mutate(
-      { postId: post.id, payload: { type } },
+      { postId: post.postId, payload: { type } },
       {
         onSuccess: (response) => {
           const data = response.data;
@@ -124,7 +124,7 @@ export function PostCard({ post }: PostCardProps) {
         <div className="flex items-center space-x-3">
           <img
             src={
-              post.author.avatarUrl ||
+              post.author.userId ||
               "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80"
             }
             alt={post.author.fullName || post.author.username}
@@ -246,7 +246,7 @@ export function PostCard({ post }: PostCardProps) {
 
       {/* COMMENTS SECTION */}
       {showComments && (
-        <CommentSection postId={post.id} commentCount={displayedCommentCount} />
+        <CommentSection postId={post.postId} commentCount={displayedCommentCount} />
       )}
     </article>
   );

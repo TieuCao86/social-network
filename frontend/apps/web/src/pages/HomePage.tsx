@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Home,
   Compass,
-  MessageSquare,
   Bell,
   User,
   Image as ImageIcon,
@@ -168,7 +167,7 @@ export function HomePage() {
 
           {/* POST */}
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.postId} post={post} />
           ))}
         </main>
 

@@ -1,283 +1,277 @@
 import { useState } from "react";
 import {
-  Search,
   SlidersHorizontal,
-  Users,
   User,
+  Users,
   FileText,
   Compass,
   Calendar,
-  Globe,
+  MapPin,
+  ChevronDown,
+  MessageSquare,
   UserPlus,
   Check,
-  ChevronRight,
+  Globe,
   MoreHorizontal,
+  Share2,
+  ThumbsUp,
 } from "lucide-react";
 import { Navbar } from "../components/ui/Navbar";
 import { PostCard } from "../components/post/PostCard";
 
 export function SearchPage() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [filterType, setFilterType] = useState("all"); // all, posts, people, groups, pages
+  const [activeTab, setActiveTab] = useState("home");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // Dữ liệu mẫu nhóm tìm kiếm được
-  const groupResults = [
-    {
-      id: 1,
-      name: "Hội thanh lý trang sức Vàng 10k 14k 18k Bạc 925",
-      privacy: "Công khai",
-      members: "428K thành viên",
-      postsPerDay: "90+ bài viết/ngày",
-      img: "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=150",
-      joined: false,
-    },
-    {
-      id: 2,
-      name: "Thanh lý trang sức vàng 10K 14K 18K",
-      privacy: "Công khai",
-      members: "73K thành viên",
-      postsPerDay: "90+ bài viết/ngày",
-      img: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=150",
-      joined: true,
-    },
-    {
-      id: 3,
-      name: "Hội Cá Cảnh Dưới 10k - Giao lưu chia sẻ",
-      privacy: "Công khai",
-      members: "266K thành viên",
-      postsPerDay: "90+ bài viết/ngày",
-      img: "https://images.unsplash.com/photo-1520302630591-fd1c66edc19d?w=150",
-      joined: false,
-    },
-  ];
+  // State cho các bộ lọc toggle bên trái
+  const [newPostsOnly, setNewPostsOnly] = useState(false);
+  const [viewedPostsOnly, setViewedPostsOnly] = useState(false);
 
-  // Dữ liệu mẫu người dùng/bạn bè tìm kiếm được
+  // Hardcode dữ liệu mẫu phần "Mọi người" giống ảnh
   const peopleResults = [
     {
       id: 1,
-      name: "Nguyễn Văn Tín",
-      subtitle: "Học tại Trường Đại học Công nghiệp TP. Hồ Chí Minh",
-      mutualFriends: "15 bạn chung",
-      img: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-      isFriend: false,
+      name: "Nguyễn Thư",
+      subtitle: "Bạn bè • Sống tại Cao Lãnh • 266 người theo dõi",
+      mutualFriends: "328 bạn chung",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      actionType: "message", // message | follow | add
+      actionText: "Nhắn tin",
     },
     {
       id: 2,
-      name: "Trần Thị Ánh",
-      subtitle: "Sống tại Hồ Chí Minh",
-      mutualFriends: "3 bạn chung",
-      img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-      isFriend: true,
+      name: "Thư Thư (Mint)",
+      subtitle: "Bạn bè • 237 người theo dõi",
+      mutualFriends: "76 bạn chung",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
+      actionType: "message",
+      actionText: "Nhắn tin",
+    },
+    {
+      id: 3,
+      name: "Minh Thư",
+      subtitle: "Bạn bè • 1K người theo dõi • Trường Đại học Y Dược Cần Thơ",
+      mutualFriends: "165 bạn chung",
+      avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
+      actionType: "message",
+      actionText: "Nhắn tin",
+    },
+    {
+      id: 4,
+      name: "Thư Đoàn",
+      subtitle: "Người sáng tạo nội dung số • 1,5K người theo dõi • @thu.doan.753515 • Cao Lãnh",
+      mutualFriends: "",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+      actionType: "following",
+      actionText: "Đang theo dõi",
+    },
+    {
+      id: 5,
+      name: "Nguyễn Thư",
+      subtitle: "Bạn bè • 564 người theo dõi",
+      mutualFriends: "",
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+      actionType: "message",
+      actionText: "Nhắn tin",
     },
   ];
+
+  // Mock post kết quả tìm kiếm
+  const mockPost = {
+    id: "p1",
+    author: {
+      username: "nguyenthu",
+      fullName: "Nguyễn Thư",
+      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+    },
+    createdAt: new Date(Date.now() - 15 * 3600 * 1000).toISOString(),
+    content: "Nguyễn Thư đã thêm một ảnh mới.",
+    mediaList: [
+      {
+        type: "IMAGE" as const,
+        url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80",
+      },
+    ],
+    totalReactions: 124,
+    commentCount: 18,
+    shareCount: 4,
+    currentUserReaction: undefined,
+    topReactions: [],
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 text-gray-800 flex flex-col">
       {/* Navbar phía trên */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Main Container */}
+      {/* Main Layout Container */}
       <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row gap-4 p-3 md:p-4">
         
-        {/* CỘT TRÁI: BỘ LỌC TÌM KIẾM (Sidebar) */}
+        {/* ================= CỘT TRÁI: BỘ LỌC TÌM KIẾM ================= */}
         <aside className="w-full md:w-80 bg-white p-4 rounded-xl shadow-sm border border-gray-200 h-fit md:sticky md:top-20 space-y-4">
           <h2 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-3">
             Kết quả tìm kiếm
           </h2>
 
           <div className="space-y-1">
-            <p className="text-xs font-bold text-gray-500 uppercase px-3 py-1">
-              Bộ lọc tìm kiếm
+            <p className="text-xs font-bold text-gray-500 uppercase px-3 py-1 mb-1">
+              Bộ lọc
             </p>
 
+            {/* Tất cả */}
             <button
-              onClick={() => setFilterType("all")}
+              onClick={() => setSelectedCategory("all")}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                filterType === "all"
+                selectedCategory === "all"
                   ? "bg-teal-50 text-teal-700"
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
-              <div className={`p-2 rounded-full ${filterType === "all" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
+              <div className={`p-2 rounded-full ${selectedCategory === "all" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <span>Tất cả</span>
             </button>
 
-            <button
-              onClick={() => setFilterType("posts")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                filterType === "posts"
-                  ? "bg-teal-50 text-teal-700"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
-            >
-              <div className={`p-2 rounded-full ${filterType === "posts" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
-                <FileText className="w-4 h-4" />
-              </div>
-              <span>Bài viết</span>
-            </button>
+            {/* Toggle: Bài viết mới đây */}
+            <div className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700">
+              <span className="font-medium">Bài viết mới đây</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newPostsOnly}
+                  onChange={(e) => setNewPostsOnly(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+              </label>
+            </div>
 
-            <button
-              onClick={() => setFilterType("people")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                filterType === "people"
-                  ? "bg-teal-50 text-teal-700"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
-            >
-              <div className={`p-2 rounded-full ${filterType === "people" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
-                <User className="w-4 h-4" />
-              </div>
-              <span>Mọi người</span>
-            </button>
+            {/* Toggle: Bài viết bạn đã xem */}
+            <div className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700">
+              <span className="font-medium">Bài viết bạn đã xem</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={viewedPostsOnly}
+                  onChange={(e) => setViewedPostsOnly(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-teal-600"></div>
+              </label>
+            </div>
 
-            <button
-              onClick={() => setFilterType("groups")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                filterType === "groups"
-                  ? "bg-teal-50 text-teal-700"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
-            >
-              <div className={`p-2 rounded-full ${filterType === "groups" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
-                <Users className="w-4 h-4" />
+            {/* Các dropdown bộ lọc bổ sung */}
+            <div className="space-y-1 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 rounded-lg text-sm text-gray-700 cursor-pointer">
+                <span className="font-medium">Ngày đăng</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               </div>
-              <span>Nhóm</span>
-            </button>
+              <div className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 rounded-lg text-sm text-gray-700 cursor-pointer">
+                <span className="font-medium">Bài viết của</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </div>
+              <div className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 rounded-lg text-sm text-gray-700 cursor-pointer">
+                <span className="font-medium">Vị trí được gắn thẻ</span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </div>
+            </div>
 
-            <button
-              onClick={() => setFilterType("pages")}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                filterType === "pages"
-                  ? "bg-teal-50 text-teal-700"
-                  : "hover:bg-gray-100 text-gray-700"
-              }`}
-            >
-              <div className={`p-2 rounded-full ${filterType === "pages" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
-                <Compass className="w-4 h-4" />
-              </div>
-              <span>Trang</span>
-            </button>
+            {/* Danh mục chuyển đổi tìm kiếm */}
+            <div className="pt-3 border-t border-gray-100 space-y-1">
+              <button
+                onClick={() => setSelectedCategory("people")}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
+                  selectedCategory === "people" ? "bg-teal-50 text-teal-700" : "hover:bg-gray-100 text-gray-700"
+                }`}
+              >
+                <User className="w-5 h-5 text-gray-500" />
+                <span>Mọi người</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedCategory("reels")}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
+                  selectedCategory === "reels" ? "bg-teal-50 text-teal-700" : "hover:bg-gray-100 text-gray-700"
+                }`}
+              >
+                <Compass className="w-5 h-5 text-gray-500" />
+                <span>Thước phim</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedCategory("groups")}
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
+                  selectedCategory === "groups" ? "bg-teal-50 text-teal-700" : "hover:bg-gray-100 text-gray-700"
+                }`}
+              >
+                <Users className="w-5 h-5 text-gray-500" />
+                <span>Nhóm</span>
+              </button>
+            </div>
           </div>
         </aside>
 
-        {/* CỘT PHẢI: KẾT QUẢ HIỂN THỊ CHÍNH */}
+        {/* ================= CỘT PHẢI: NỘI DUNG KẾT QUẢ TÌM KIẾM ================= */}
         <main className="flex-1 space-y-6">
 
-          {/* 1. KHU VỰC KẾT QUẢ NHÓM (GROUPS) */}
-          {(filterType === "all" || filterType === "groups") && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="font-bold text-lg text-gray-900">Nhóm</h3>
-                <span className="text-teal-600 text-sm font-semibold cursor-pointer hover:underline">
-                  Xem tất cả
-                </span>
-              </div>
+          {/* 1. KHU VỰC KẾT QUẢ "MỌI NGƯỜI" */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
+            <h3 className="font-bold text-lg text-gray-900 border-b border-gray-100 pb-3">
+              Mọi người
+            </h3>
 
-              <div className="space-y-3">
-                {groupResults.map((group) => (
-                  <div
-                    key={group.id}
-                    className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition border border-transparent hover:border-gray-200"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={group.img}
-                        alt={group.name}
-                        className="w-14 h-14 rounded-xl object-cover border border-gray-200 shrink-0"
-                      />
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer">
-                          {group.name}
-                        </h4>
-                        <p className="text-xs text-gray-500">
-                          {group.privacy} · {group.members} · {group.postsPerDay}
+            <div className="space-y-3">
+              {peopleResults.map((person) => (
+                <div
+                  key={person.id}
+                  className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition border border-transparent hover:border-gray-200"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={person.avatar}
+                      alt={person.name}
+                      className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
+                    />
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer">
+                        {person.name}
+                      </h4>
+                      <p className="text-xs text-gray-500">{person.subtitle}</p>
+                      {person.mutualFriends && (
+                        <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                          <span>👥</span> {person.mutualFriends}
                         </p>
-                      </div>
-                    </div>
-
-                    <button
-                      className={`px-4 py-1.5 rounded-lg font-semibold text-xs transition flex items-center space-x-1 shrink-0 ${
-                        group.joined
-                          ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                          : "bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200"
-                      }`}
-                    >
-                      {group.joined ? (
-                        <>
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Đã tham gia</span>
-                        </>
-                      ) : (
-                        <span>Tham gia</span>
                       )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 2. KHU VỰC KẾT QUẢ MỌI NGƯỜI / BẠN BÈ (PEOPLE) */}
-          {(filterType === "all" || filterType === "people") && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="font-bold text-lg text-gray-900">Mọi người</h3>
-                <span className="text-teal-600 text-sm font-semibold cursor-pointer hover:underline">
-                  Xem tất cả
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {peopleResults.map((person) => (
-                  <div
-                    key={person.id}
-                    className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition border border-transparent hover:border-gray-200"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={person.img}
-                        alt={person.name}
-                        className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
-                      />
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer">
-                          {person.name}
-                        </h4>
-                        <p className="text-xs text-gray-500">{person.subtitle}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          {person.mutualFriends}
-                        </p>
-                      </div>
                     </div>
-
-                    <button
-                      className={`px-4 py-1.5 rounded-lg font-semibold text-xs transition flex items-center space-x-1.5 shrink-0 ${
-                        person.isFriend
-                          ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                          : "bg-teal-600 text-white hover:bg-teal-700"
-                      }`}
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>{person.isFriend ? "Bạn bè" : "Thêm bạn bè"}</span>
-                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* 3. KHU VỰC KẾT QUẢ BÀI VIẾT (POSTS) */}
-          {(filterType === "all" || filterType === "posts") && (
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg text-gray-900 px-1">Bài viết liên quan</h3>
-              {/* Bạn có thể dùng chung PostCard sẵn có */}
-              <div className="bg-white rounded-xl shadow-sm p-6 text-center text-gray-500">
-                Hiển thị các bài viết khớp với từ khóa tìm kiếm của bạn...
-              </div>
+                  <button
+                    className={`px-4 py-1.5 rounded-lg font-semibold text-xs transition shrink-0 ${
+                      person.actionType === "following"
+                        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                        : "bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200"
+                    }`}
+                  >
+                    {person.actionText}
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
+
+            {/* Nút Xem tất cả */}
+            <div className="pt-2 border-t border-gray-100 text-center">
+              <button className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold text-xs rounded-lg transition">
+                Xem tất cả
+              </button>
+            </div>
+          </div>
+
+          {/* 2. KHU VỰC BÀI VIẾT LIÊN QUAN */}
+          <div className="space-y-4">
+            <h3 className="font-bold text-lg text-gray-900 px-1">Bài viết</h3>
+            <PostCard post={mockPost} />
+          </div>
 
         </main>
       </div>

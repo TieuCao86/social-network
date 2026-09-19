@@ -4,6 +4,8 @@ import com.socialnetwork.module.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -32,9 +34,26 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             String phone
     );
 
-    Page<User> findByUsernameContainingIgnoreCaseAndIdNot(
-            String username,
-            UUID currentUserId,
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%'))
+          AND u.id <> :currentUserId
+          AND NOT EXISTS (
+              SELECT f.id
+              FROM Friendship f
+              WHERE
+                  (
+                      (f.requesterId = :currentUserId AND f.addresseeId = u.id)
+                      OR
+                      (f.requesterId = u.id AND f.addresseeId = :currentUserId)
+                  )
+                  AND f.status = com.socialnetwork.module.relationship.entity.enums.FriendshipStatus.BLOCKED
+          )
+        """)
+    Page<User> searchUsers(
+            @Param("currentUserId") UUID currentUserId,
+            @Param("keyword") String keyword,
             Pageable pageable
     );
 }
