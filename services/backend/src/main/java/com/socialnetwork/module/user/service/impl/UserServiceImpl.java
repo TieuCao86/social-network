@@ -5,6 +5,7 @@ import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.module.relationship.entity.enums.RelationshipStatus;
 import com.socialnetwork.module.relationship.service.RelationshipService;
 import com.socialnetwork.module.user.dto.request.UserCreateRequest;
+import com.socialnetwork.module.user.dto.request.UserProfileUpdateRequest;
 import com.socialnetwork.module.user.dto.response.UserResponse;
 import com.socialnetwork.module.user.dto.response.UserSearchResponse;
 import com.socialnetwork.module.user.entity.User;
@@ -100,7 +101,7 @@ public class UserServiceImpl implements UserService {
         user = userRepository.saveAndFlush(user);
 
         // Tạo Profile
-        userProfileRepository.save(
+        UserProfile profile = userProfileRepository.save(
                 UserProfile.builder()
                         .userId(user.getId())
                         .build()
@@ -113,16 +114,22 @@ public class UserServiceImpl implements UserService {
                         .build()
         );
 
-        return userMapper.toResponse(user);
+        return userMapper.toResponse(user, profile);
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserResponse getCurrentUserProfile(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        return userMapper.toResponse(user);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.USER_NOT_FOUND)
+                );
+
+        UserProfile profile = userProfileRepository.findById(userId)
+                .orElse(null);
+
+        return userMapper.toResponse(user, profile);
     }
 
     @Override
@@ -141,6 +148,7 @@ public class UserServiceImpl implements UserService {
         return userRepository
                 .searchUsers(currentUserId, searchKeyword, pageable)
                 .map(user -> {
+
                     RelationshipStatus relationshipStatus =
                             relationshipService.getStatus(
                                     currentUserId,
@@ -157,5 +165,34 @@ public class UserServiceImpl implements UserService {
                             relationshipStatus
                     );
                 });
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateProfile(
+            UUID userId,
+            UserProfileUpdateRequest request
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new BusinessException(ErrorCode.USER_NOT_FOUND)
+                );
+
+        UserProfile profile = userProfileRepository.findById(userId)
+                .orElseGet(() ->
+                        UserProfile.builder()
+                                .userId(userId)
+                                .build()
+                );
+
+        profile.setFullName(request.getFullName());
+        profile.setBio(request.getBio());
+        profile.setWebsite(request.getWebsite());
+        profile.setLocation(request.getLocation());
+        profile.setBirthDate(request.getBirthDate());
+
+        profile = userProfileRepository.save(profile);
+
+        return userMapper.toResponse(user, profile);
     }
 }

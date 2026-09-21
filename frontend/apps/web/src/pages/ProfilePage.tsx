@@ -79,7 +79,7 @@ export function ProfilePage() {
 
               <div className="text-center md:text-left mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Cao Quốc Trung
+                   {userData?.fullName || userData?.username || "Người dùng"}
                 </h1>
 
                 <p className="text-gray-600 text-sm font-semibold">

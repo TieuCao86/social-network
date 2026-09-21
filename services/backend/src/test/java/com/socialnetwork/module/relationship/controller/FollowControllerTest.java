@@ -127,7 +127,7 @@ class FollowControllerTest {
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.code").value("RELATIONSHIP_003"))
+                .andExpect(jsonPath("$.code").value("RELATIONSHIP_012"))
                 .andExpect(jsonPath("$.message")
                         .value("Không thể theo dõi chính mình."));
     }

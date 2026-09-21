@@ -155,7 +155,7 @@ class PostControllerTest {
 
         mockMvc.perform(get("/api/posts/{id}", post.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(post.getId().toString()))
+                .andExpect(jsonPath("$.data.postId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.data.content").value("Nội dung bài viết mẫu"));
     }
 

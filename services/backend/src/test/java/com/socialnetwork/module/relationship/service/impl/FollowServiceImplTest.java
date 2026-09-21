@@ -58,7 +58,7 @@ class FollowServiceImplTest {
                 .build();
 
         sampleResponse = FollowResponse.builder()
-                .id(sampleFollow.getId())
+                .followId(sampleFollow.getId())
                 .build();
     }
 
@@ -95,8 +95,8 @@ class FollowServiceImplTest {
 
             assertNotNull(result);
             assertEquals(
-                    sampleResponse.getId(),
-                    result.getId()
+                    sampleResponse.getFollowId(),
+                    result.getFollowId()
             );
 
             verify(followRepository)
@@ -376,8 +376,8 @@ class FollowServiceImplTest {
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
             assertEquals(
-                    sampleResponse.getId(),
-                    result.getContent().get(0).getId()
+                    sampleResponse.getFollowId(),
+                    result.getContent().get(0).getFollowId()
             );
 
             verify(followRepository)

@@ -18,10 +18,15 @@ export interface UserResponse {
   username: string;
   email: string | null;
   phone: string | null;
+
   status: UserStatus;
   role: UserRole;
+
   emailVerified: boolean;
   phoneVerified: boolean;
+
+  fullName: string | null;
+  avatarFileId: string | null;
 }
 
 export interface UserSearchResponse {

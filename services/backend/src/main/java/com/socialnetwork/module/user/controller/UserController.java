@@ -4,6 +4,7 @@ import com.socialnetwork.common.exception.BusinessException;
 import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.common.response.ApiResponse;
 import com.socialnetwork.common.security.CustomUserDetails;
+import com.socialnetwork.module.user.dto.request.UserProfileUpdateRequest;
 import com.socialnetwork.module.user.dto.response.UserResponse;
 import com.socialnetwork.module.user.dto.response.UserSearchResponse;
 import com.socialnetwork.module.user.service.UserService;
@@ -78,6 +79,31 @@ public class UserController {
 
         return ApiResponse.success(
                 "Tìm kiếm người dùng thành công",
+                response
+        );
+    }
+
+    @Operation(summary = "Cập nhật thông tin cá nhân")
+    @PutMapping("/profile")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<UserResponse> updateProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody UserProfileUpdateRequest request
+    ) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        UUID currentUserId = userDetails.getUser().getId();
+
+        UserResponse response =
+                userService.updateProfile(
+                        currentUserId,
+                        request
+                );
+
+        return ApiResponse.success(
+                "Cập nhật thông tin cá nhân thành công",
                 response
         );
     }

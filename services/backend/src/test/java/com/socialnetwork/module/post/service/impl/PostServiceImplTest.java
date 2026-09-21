@@ -90,13 +90,13 @@ class PostServiceImplTest {
 
         PostAuthorResponse mockAuthor =
                 PostAuthorResponse.builder()
-                        .id(authorId)
+                        .userId(authorId)
                         .username("testuser")
                         .fullName("Test User")
                         .build();
 
         mockResponse = PostResponse.builder()
-                .id(postId)
+                .postId(postId)
                 .author(mockAuthor)
                 .content("Nội dung bài viết")
                 .visibility(PostVisibility.PUBLIC)
@@ -159,7 +159,7 @@ class PostServiceImplTest {
                     postService.createPost(authorId, request);
 
             assertNotNull(result);
-            assertEquals(postId, result.getId());
+            assertEquals(postId, result.getPostId());
 
             verify(postRepository).save(argThat(post ->
                     post.getAuthorId().equals(authorId)
@@ -322,7 +322,7 @@ class PostServiceImplTest {
                     );
 
             assertNotNull(result);
-            assertEquals(postId, result.getId());
+            assertEquals(postId, result.getPostId());
 
             verify(postRepository).findById(postId);
 
@@ -556,13 +556,13 @@ class PostServiceImplTest {
 
             // 2. Chuẩn bị DTO Response
             PostAuthorResponse friendAuthor = PostAuthorResponse.builder()
-                    .id(friendId)
+                    .userId(friendId)
                     .username("friend")
                     .fullName("Friend")
                     .build();
 
             PostResponse friendResponse = PostResponse.builder()
-                    .id(friendPostId)
+                    .postId(friendPostId)
                     .author(friendAuthor)
                     .content("Bài viết của bạn")
                     .build();

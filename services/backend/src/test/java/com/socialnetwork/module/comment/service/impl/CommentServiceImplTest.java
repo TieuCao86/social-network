@@ -8,7 +8,11 @@ import com.socialnetwork.module.comment.dto.response.CommentResponse;
 import com.socialnetwork.module.comment.entity.Comment;
 import com.socialnetwork.module.comment.entity.CommentStatus;
 import com.socialnetwork.module.comment.mapper.CommentMapper;
+import com.socialnetwork.module.comment.repository.CommentMediaRepository;
 import com.socialnetwork.module.comment.repository.CommentRepository;
+import com.socialnetwork.module.user.entity.User;
+import com.socialnetwork.module.user.repository.UserProfileRepository;
+import com.socialnetwork.module.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,6 +42,15 @@ class CommentServiceImplTest {
 
     @Mock
     private CommentMapper commentMapper;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private CommentMediaRepository commentMediaRepository;
+
+    @Mock
+    private UserProfileRepository userProfileRepository;
 
     @InjectMocks
     private CommentServiceImpl commentService;
@@ -83,10 +96,20 @@ class CommentServiceImplTest {
         sampleResponse = CommentResponse.builder()
                 .id(commentId)
                 .postId(postId)
-                .userId(currentUserId)
                 .content("Đây là comment test")
                 .status(CommentStatus.ACTIVE)
                 .build();
+
+        lenient().when(userRepository.findById(any()))
+                .thenReturn(Optional.of(
+                        User.builder()
+                                .id(currentUserId)
+                                .username("test_user")
+                                .build()
+                ));
+
+        lenient().when(userProfileRepository.findById(any()))
+                .thenReturn(Optional.empty());
     }
 
     // ============================================================
@@ -541,7 +564,7 @@ class CommentServiceImplTest {
                     );
 
             when(commentRepository
-                    .findByPostIdAndParentIdIsNullAndStatus(
+                    .findByPostIdAndParentIdIsNullAndStatusOrderByCreatedAtAsc(
                             postId,
                             CommentStatus.ACTIVE,
                             pageable
@@ -565,7 +588,7 @@ class CommentServiceImplTest {
             );
 
             verify(commentRepository)
-                    .findByPostIdAndParentIdIsNullAndStatus(
+                    .findByPostIdAndParentIdIsNullAndStatusOrderByCreatedAtAsc(
                             postId,
                             CommentStatus.ACTIVE,
                             pageable
@@ -583,13 +606,11 @@ class CommentServiceImplTest {
                             0
                     );
 
-            when(commentRepository
-                    .findByPostIdAndParentIdIsNullAndStatus(
-                            postId,
-                            CommentStatus.ACTIVE,
-                            pageable
-                    ))
-                    .thenReturn(page);
+            when(commentRepository.findByPostIdAndParentIdIsNullAndStatusOrderByCreatedAtAsc(
+                    postId,
+                    CommentStatus.ACTIVE,
+                    pageable
+            )).thenReturn(page);
 
             Page<CommentResponse> result =
                     commentService.getComments(
@@ -645,7 +666,7 @@ class CommentServiceImplTest {
             when(commentRepository.findById(commentId))
                     .thenReturn(Optional.of(sampleComment));
 
-            when(commentRepository.findByParentIdAndStatus(
+            when(commentRepository.findByParentIdAndStatusOrderByCreatedAtAsc(
                     commentId,
                     CommentStatus.ACTIVE,
                     pageable
@@ -667,7 +688,7 @@ class CommentServiceImplTest {
                     .findById(commentId);
 
             verify(commentRepository)
-                    .findByParentIdAndStatus(
+                    .findByParentIdAndStatusOrderByCreatedAtAsc(
                             commentId,
                             CommentStatus.ACTIVE,
                             pageable
@@ -695,7 +716,7 @@ class CommentServiceImplTest {
             );
 
             verify(commentRepository, never())
-                    .findByParentIdAndStatus(
+                    .findByParentIdAndStatusOrderByCreatedAtAsc(
                             any(),
                             any(),
                             any()
@@ -725,7 +746,7 @@ class CommentServiceImplTest {
             );
 
             verify(commentRepository, never())
-                    .findByParentIdAndStatus(
+                    .findByParentIdAndStatusOrderByCreatedAtAsc(
                             any(),
                             any(),
                             any()

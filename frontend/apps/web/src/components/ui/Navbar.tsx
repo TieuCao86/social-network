@@ -16,7 +16,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
+import { getApiClient, createUseAuth } from "@social/shared";
 
 import logoImg from "../../assets/logo.png";
 
@@ -27,6 +29,10 @@ interface NavbarProps {
 
 export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { useMe } = createUseAuth(getApiClient());
+  const { data: user } = useMe();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,18 +58,14 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
 
   const handleGoHome = () => {
     setActiveTab("home");
-    navigate("/");
-  };
 
-  // Hàm xử lý khi nhấn Enter ở ô tìm kiếm
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // Ngăn form submit mặc định của trình duyệt
-      if (searchQuery.trim()) {
-        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      }
+    if (location.pathname === "/") {
+      window.location.reload();
+    } else {
+      navigate("/");
     }
   };
+
   return (
     <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-2.5 grid grid-cols-3 items-center sticky top-0 z-30 shadow-sm w-full">
       {/* 1. CỘT TRÁI: Logo & Tìm kiếm */}
@@ -83,13 +85,19 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (searchQuery.trim()) {
-                navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+
+              const keyword = searchQuery.trim();
+
+              if (!keyword) {
+                return;
               }
+
+              navigate(`/search?q=${encodeURIComponent(keyword)}`);
             }}
             className="relative w-36 sm:w-56 md:w-64"
           >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+
             <input
               type="text"
               value={searchQuery}
@@ -171,7 +179,7 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
                   />
 
                   <span className="font-bold text-gray-900 text-sm">
-                    Cao Quốc Trung
+                    {user?.username ?? "Người dùng"}
                   </span>
                 </div>
 

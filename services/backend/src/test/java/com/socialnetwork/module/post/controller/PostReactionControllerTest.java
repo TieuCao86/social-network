@@ -255,7 +255,7 @@ class PostReactionControllerTest {
 
         ReactionUserResponse reactionUser =
                 ReactionUserResponse.builder()
-                        .id(UUID.randomUUID())
+                        .reactionId(UUID.randomUUID())
                         .userId(user.getId())
                         .username("test_user")
                         .email("test@example.com")

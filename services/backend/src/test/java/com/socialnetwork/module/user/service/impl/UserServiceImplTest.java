@@ -5,6 +5,7 @@ import com.socialnetwork.common.exception.ErrorCode;
 import com.socialnetwork.module.user.dto.request.UserCreateRequest;
 import com.socialnetwork.module.user.dto.response.UserResponse;
 import com.socialnetwork.module.user.entity.User;
+import com.socialnetwork.module.user.entity.UserProfile;
 import com.socialnetwork.module.user.mapper.UserMapper;
 import com.socialnetwork.module.user.repository.UserProfileRepository;
 import com.socialnetwork.module.user.repository.UserRepository;
@@ -47,6 +48,7 @@ class UserServiceImplTest {
     private UserServiceImpl userService;
 
     private UserCreateRequest request;
+    private UserProfile sampleProfile;
 
     @BeforeEach
     void setUp() {
@@ -54,6 +56,11 @@ class UserServiceImplTest {
         request.setUsername("new_user");
         request.setEmail("new@example.com");
         request.setPassword("Password123!");
+
+        sampleProfile = UserProfile.builder()
+                .userId(UUID.randomUUID())
+                .fullName("Test User")
+                .build();
     }
 
     // =========================================================
@@ -82,7 +89,10 @@ class UserServiceImplTest {
         when(userMapper.toEntity(request)).thenReturn(user);
         when(passwordEncoder.encode("Password123!")).thenReturn("encoded_password");
         when(userRepository.saveAndFlush(user)).thenReturn(user);
-        when(userMapper.toResponse(user)).thenReturn(expectedResponse);
+
+        // Truyền đủ 2 tham số (User, UserProfile) - có thể dùng any() hoặc sampleProfile
+        when(userMapper.toResponse(any(User.class), nullable(UserProfile.class)))
+                .thenReturn(expectedResponse);
 
         UserResponse result = userService.createUser(request);
 
@@ -96,7 +106,8 @@ class UserServiceImplTest {
         verify(userRepository).saveAndFlush(user);
         verify(userProfileRepository).save(any());
         verify(userSettingRepository).save(any());
-        verify(userMapper).toResponse(user);
+        verify(userMapper)
+                .toResponse(any(User.class), nullable(UserProfile.class));
     }
 
     // =========================================================
@@ -219,7 +230,8 @@ class UserServiceImplTest {
         when(userMapper.toEntity(request)).thenReturn(user);
         when(passwordEncoder.encode("Password123!")).thenReturn("encoded_password");
         when(userRepository.saveAndFlush(user)).thenReturn(user);
-        when(userMapper.toResponse(user)).thenReturn(response);
+        when(userMapper.toResponse(eq(user), nullable(UserProfile.class)))
+                .thenReturn(response);
 
         UserResponse result = userService.createUser(request);
 
@@ -249,7 +261,8 @@ class UserServiceImplTest {
         when(userMapper.toEntity(request)).thenReturn(user);
         when(passwordEncoder.encode("Password123!")).thenReturn("encoded_password");
         when(userRepository.saveAndFlush(user)).thenReturn(user);
-        when(userMapper.toResponse(user)).thenReturn(response);
+        when(userMapper.toResponse(eq(user), nullable(UserProfile.class)))
+                .thenReturn(response);
 
         userService.createUser(request);
 
@@ -272,7 +285,8 @@ class UserServiceImplTest {
         when(userMapper.toEntity(request)).thenReturn(user);
         when(passwordEncoder.encode("Password123!")).thenReturn("HASHED_PASSWORD");
         when(userRepository.saveAndFlush(user)).thenReturn(user);
-        when(userMapper.toResponse(user)).thenReturn(response);
+        when(userMapper.toResponse(eq(user), nullable(UserProfile.class)))
+                .thenReturn(response);
 
         userService.createUser(request);
 
@@ -299,7 +313,7 @@ class UserServiceImplTest {
         when(userMapper.toEntity(request)).thenReturn(user);
         when(passwordEncoder.encode("Password123!")).thenReturn("encoded_password");
         when(userRepository.saveAndFlush(user)).thenReturn(user);
-        when(userMapper.toResponse(user)).thenReturn(response);
+        when(userMapper.toResponse(eq(user), nullable(UserProfile.class))).thenReturn(response);
 
         UserResponse result = userService.createUser(request);
 
@@ -331,10 +345,12 @@ class UserServiceImplTest {
                 .email("test@example.com")
                 .build();
 
-        // 1. Mock userRepository findById trả về Optional<User>
+        // Mock cả userRepository lẫn userProfileRepository (nếu service gọi cả 2 để lấy profile)
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        // 2. Mock mapper
-        when(userMapper.toResponse(user)).thenReturn(expectedResponse);
+        when(userProfileRepository.findById(userId)).thenReturn(Optional.of(sampleProfile));
+
+        // Mock toResponse với đủ 2 tham số
+        when(userMapper.toResponse(user, sampleProfile)).thenReturn(expectedResponse);
 
         UserResponse result = userService.getCurrentUserProfile(userId);
 
@@ -343,7 +359,8 @@ class UserServiceImplTest {
         assertEquals("test@example.com", result.getEmail());
 
         verify(userRepository).findById(userId);
-        verify(userMapper).toResponse(user);
+        verify(userProfileRepository).findById(userId);
+        verify(userMapper).toResponse(user, sampleProfile);
     }
 
     @Test

@@ -61,7 +61,7 @@ class FriendshipServiceImplTest {
                 .build();
 
         mockFriendshipResponse = FriendshipResponse.builder()
-                .id(friendshipId)
+                .friendshipId(friendshipId)
                 .requesterId(currentUserId)
                 .addresseeId(targetUserId)
                 .status(FriendshipStatus.PENDING)
@@ -125,7 +125,7 @@ class FriendshipServiceImplTest {
             assertNotNull(result);
             assertEquals(
                     friendshipId,
-                    result.getId()
+                    result.getFriendshipId()
             );
 
             verify(friendshipRepository)

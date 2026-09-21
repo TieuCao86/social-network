@@ -117,7 +117,7 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.postId")
                         .value(postId.toString()))
-                .andExpect(jsonPath("$.data.userId")
+                .andExpect(jsonPath("$.data.author.id")
                         .value(user1.getId().toString()))
                 .andExpect(jsonPath("$.data.content")
                         .value("Đây là một comment."))

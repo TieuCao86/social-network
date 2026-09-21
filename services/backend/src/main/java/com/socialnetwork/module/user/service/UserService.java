@@ -1,6 +1,7 @@
 package com.socialnetwork.module.user.service;
 
 import com.socialnetwork.module.user.dto.request.UserCreateRequest;
+import com.socialnetwork.module.user.dto.request.UserProfileUpdateRequest;
 import com.socialnetwork.module.user.dto.response.UserResponse;
 import com.socialnetwork.module.user.dto.response.UserSearchResponse;
 import com.socialnetwork.module.user.entity.User;
@@ -19,5 +20,10 @@ public interface UserService {
             UUID currentUserId,
             String keyword,
             Pageable pageable
+    );
+
+    UserResponse updateProfile(
+            UUID userId,
+            UserProfileUpdateRequest request
     );
 }
