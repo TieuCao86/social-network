@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { ThumbsUp, ThumbsDown, ChevronDown } from "lucide-react";
 
-import { formatRelativeTime, useCreateComment } from "@social/shared";
+import { formatRelativeTime } from "@social/shared";
+
+import { comment as commentHooks } from "../../api/client";
 
 import type { CommentResponse } from "@social/shared";
 
@@ -17,7 +19,7 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState("");
 
-  const createComment = useCreateComment();
+  const createComment = commentHooks.useCreateComment();
 
   const authorName = comment.author.fullName || comment.author.username;
 
@@ -33,7 +35,7 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
         postId,
         payload: {
           content: value,
-          parentId: comment.id,
+          parentId: comment.commentId,
           mediaList: [],
         },
       },
@@ -76,7 +78,7 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
           </div>
 
           {comment.content && (
-            <p className="text-gray-900 text-[15px] whitespace-pre-wrap break-words leading-relaxed">
+            <p className="text-gray-900 text-[15px] whitespace-pre-wrap wrap-break-word leading-relaxed">
               {comment.content}
             </p>
           )}
@@ -162,7 +164,9 @@ export function CommentItem({ comment, postId }: CommentItemProps) {
         </div>
       </div>
 
-      {isRepliesOpen && <ReplyList commentId={comment.id} postId={postId} />}
+      {isRepliesOpen && (
+        <ReplyList commentId={comment.commentId} postId={postId} />
+      )}
     </div>
   );
 }

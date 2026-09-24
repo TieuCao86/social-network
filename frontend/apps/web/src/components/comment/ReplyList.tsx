@@ -1,4 +1,4 @@
-import { useInfiniteReplies } from "@social/shared";
+import { comment as commentHooks } from "../../api/client";
 
 import { CommentItem } from "./CommentItem";
 
@@ -15,7 +15,7 @@ export function ReplyList({ commentId, postId }: ReplyListProps) {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useInfiniteReplies(commentId, 10);
+  } = commentHooks.useInfiniteReplies(commentId, 10);
 
   const replies = data?.pages.flatMap((page) => page.content) ?? [];
 
@@ -44,7 +44,7 @@ export function ReplyList({ commentId, postId }: ReplyListProps) {
   return (
     <div className="mt-3 ml-8 pl-4 border-l-2 border-gray-100 space-y-4">
       {replies.map((reply) => (
-        <CommentItem key={reply.id} comment={reply} postId={postId} />
+        <CommentItem key={reply.commentId} comment={reply} postId={postId} />
       ))}
 
       {hasNextPage && (

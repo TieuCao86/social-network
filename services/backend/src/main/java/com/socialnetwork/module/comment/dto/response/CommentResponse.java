@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CommentResponse {
 
-    private UUID id;
+    private UUID commentId;
 
     private UUID postId;
 

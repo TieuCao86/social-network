@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CommentMediaResponse {
 
-    private UUID id;
+    private UUID mediaId;
 
     private UUID fileId;
 

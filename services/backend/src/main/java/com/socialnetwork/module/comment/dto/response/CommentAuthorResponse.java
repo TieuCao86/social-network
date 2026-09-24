@@ -11,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CommentAuthorResponse {
 
-    private UUID id;
+    private UUID userId;
 
     private String username;
 

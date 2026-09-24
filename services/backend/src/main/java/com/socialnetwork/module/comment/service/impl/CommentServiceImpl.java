@@ -227,7 +227,7 @@ public class CommentServiceImpl implements CommentService {
 
         response.setAuthor(
                 CommentAuthorResponse.builder()
-                        .id(user.getId())
+                        .userId(user.getId())
                         .username(user.getUsername())
                         .fullName(
                                 profile != null

@@ -1,80 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
   SlidersHorizontal,
   User,
   Users,
-  FileText,
   Compass,
-  Calendar,
-  MapPin,
   ChevronDown,
-  MessageSquare,
-  UserPlus,
-  Check,
-  Globe,
-  MoreHorizontal,
-  Share2,
-  ThumbsUp,
 } from "lucide-react";
 import { Navbar } from "../components/ui/Navbar";
 import { PostCard } from "../components/post/PostCard";
 
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  createUserService,
+  getApiClient,
+  getRelationshipText,
+} from "@social/shared";
+import type { UserSearchResponse } from "@social/shared";
+
 export function SearchPage() {
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState("");
+
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   // State cho các bộ lọc toggle bên trái
   const [newPostsOnly, setNewPostsOnly] = useState(false);
   const [viewedPostsOnly, setViewedPostsOnly] = useState(false);
 
-  // Hardcode dữ liệu mẫu phần "Mọi người" giống ảnh
-  const peopleResults = [
-    {
-      id: 1,
-      name: "Nguyễn Thư",
-      subtitle: "Bạn bè • Sống tại Cao Lãnh • 266 người theo dõi",
-      mutualFriends: "328 bạn chung",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-      actionType: "message", // message | follow | add
-      actionText: "Nhắn tin",
-    },
-    {
-      id: 2,
-      name: "Thư Thư (Mint)",
-      subtitle: "Bạn bè • 237 người theo dõi",
-      mutualFriends: "76 bạn chung",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-      actionType: "message",
-      actionText: "Nhắn tin",
-    },
-    {
-      id: 3,
-      name: "Minh Thư",
-      subtitle: "Bạn bè • 1K người theo dõi • Trường Đại học Y Dược Cần Thơ",
-      mutualFriends: "165 bạn chung",
-      avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
-      actionType: "message",
-      actionText: "Nhắn tin",
-    },
-    {
-      id: 4,
-      name: "Thư Đoàn",
-      subtitle: "Người sáng tạo nội dung số • 1,5K người theo dõi • @thu.doan.753515 • Cao Lãnh",
-      mutualFriends: "",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-      actionType: "following",
-      actionText: "Đang theo dõi",
-    },
-    {
-      id: 5,
-      name: "Nguyễn Thư",
-      subtitle: "Bạn bè • 564 người theo dõi",
-      mutualFriends: "",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-      actionType: "message",
-      actionText: "Nhắn tin",
-    },
-  ];
+  const keyword = searchParams.get("q") || "";
+
+  const [peopleResults, setPeopleResults] = useState<UserSearchResponse[]>([]);
+  const [loadingPeople, setLoadingPeople] = useState(false);
+  const [peopleError, setPeopleError] = useState<string | null>(null);
 
   // Mock post kết quả tìm kiếm
   const mockPost = {
@@ -82,7 +42,8 @@ export function SearchPage() {
     author: {
       username: "nguyenthu",
       fullName: "Nguyễn Thư",
-      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      avatarUrl:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
     },
     createdAt: new Date(Date.now() - 15 * 3600 * 1000).toISOString(),
     content: "Nguyễn Thư đã thêm một ảnh mới.",
@@ -99,6 +60,35 @@ export function SearchPage() {
     topReactions: [],
   };
 
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (!keyword.trim()) {
+        setPeopleResults([]);
+        return;
+      }
+
+      try {
+        setLoadingPeople(true);
+        setPeopleError(null);
+
+        const client = getApiClient();
+        const userService = createUserService(client);
+
+        const response = await userService.searchUsers(keyword, 0, 10);
+
+        setPeopleResults(response.content);
+      } catch (error) {
+        console.error("Search users error:", error);
+        setPeopleError("Không thể tìm kiếm người dùng.");
+        setPeopleResults([]);
+      } finally {
+        setLoadingPeople(false);
+      }
+    };
+
+    searchUsers();
+  }, [keyword]);
+
   return (
     <div className="min-h-screen bg-slate-100 text-gray-800 flex flex-col">
       {/* Navbar phía trên */}
@@ -106,7 +96,6 @@ export function SearchPage() {
 
       {/* Main Layout Container */}
       <div className="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row gap-4 p-3 md:p-4">
-        
         {/* ================= CỘT TRÁI: BỘ LỌC TÌM KIẾM ================= */}
         <aside className="w-full md:w-80 bg-white p-4 rounded-xl shadow-sm border border-gray-200 h-fit md:sticky md:top-20 space-y-4">
           <h2 className="text-xl font-bold text-gray-900 border-b border-gray-200 pb-3">
@@ -127,7 +116,9 @@ export function SearchPage() {
                   : "hover:bg-gray-100 text-gray-700"
               }`}
             >
-              <div className={`p-2 rounded-full ${selectedCategory === "all" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}>
+              <div
+                className={`p-2 rounded-full ${selectedCategory === "all" ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700"}`}
+              >
                 <SlidersHorizontal className="w-4 h-4" />
               </div>
               <span>Tất cả</span>
@@ -182,7 +173,9 @@ export function SearchPage() {
               <button
                 onClick={() => setSelectedCategory("people")}
                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                  selectedCategory === "people" ? "bg-teal-50 text-teal-700" : "hover:bg-gray-100 text-gray-700"
+                  selectedCategory === "people"
+                    ? "bg-teal-50 text-teal-700"
+                    : "hover:bg-gray-100 text-gray-700"
                 }`}
               >
                 <User className="w-5 h-5 text-gray-500" />
@@ -192,7 +185,9 @@ export function SearchPage() {
               <button
                 onClick={() => setSelectedCategory("reels")}
                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                  selectedCategory === "reels" ? "bg-teal-50 text-teal-700" : "hover:bg-gray-100 text-gray-700"
+                  selectedCategory === "reels"
+                    ? "bg-teal-50 text-teal-700"
+                    : "hover:bg-gray-100 text-gray-700"
                 }`}
               >
                 <Compass className="w-5 h-5 text-gray-500" />
@@ -202,7 +197,9 @@ export function SearchPage() {
               <button
                 onClick={() => setSelectedCategory("groups")}
                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition ${
-                  selectedCategory === "groups" ? "bg-teal-50 text-teal-700" : "hover:bg-gray-100 text-gray-700"
+                  selectedCategory === "groups"
+                    ? "bg-teal-50 text-teal-700"
+                    : "hover:bg-gray-100 text-gray-700"
                 }`}
               >
                 <Users className="w-5 h-5 text-gray-500" />
@@ -214,7 +211,6 @@ export function SearchPage() {
 
         {/* ================= CỘT PHẢI: NỘI DUNG KẾT QUẢ TÌM KIẾM ================= */}
         <main className="flex-1 space-y-6">
-
           {/* 1. KHU VỰC KẾT QUẢ "MỌI NGƯỜI" */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 space-y-4">
             <h3 className="font-bold text-lg text-gray-900 border-b border-gray-100 pb-3">
@@ -224,36 +220,37 @@ export function SearchPage() {
             <div className="space-y-3">
               {peopleResults.map((person) => (
                 <div
-                  key={person.id}
+                  key={person.userId}
                   className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl transition border border-transparent hover:border-gray-200"
                 >
                   <div className="flex items-center space-x-3">
-                    <img
-                      src={person.avatar}
-                      alt={person.name}
-                      className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
-                    />
+                    <div
+                      onClick={() => navigate(`/profile/${person.userId}`)}
+                      className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center shrink-0 cursor-pointer hover:opacity-80 transition"
+                    >
+                      <User className="w-7 h-7 text-gray-500" />
+                    </div>
+
                     <div>
-                      <h4 className="font-bold text-gray-900 text-sm hover:underline cursor-pointer">
-                        {person.name}
+                      <h4
+                        onClick={() => navigate(`/profile/${person.userId}`)}
+                        className="font-bold text-gray-900 text-sm hover:underline cursor-pointer"
+                      >
+                        {person.fullName || person.username}
                       </h4>
-                      <p className="text-xs text-gray-500">{person.subtitle}</p>
-                      {person.mutualFriends && (
-                        <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
-                          <span>👥</span> {person.mutualFriends}
-                        </p>
-                      )}
+
+                      <p className="text-xs text-gray-500">
+                        @{person.username}
+                      </p>
+
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        {getRelationshipText(person.relationshipStatus)}
+                      </p>
                     </div>
                   </div>
 
-                  <button
-                    className={`px-4 py-1.5 rounded-lg font-semibold text-xs transition shrink-0 ${
-                      person.actionType === "following"
-                        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                        : "bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200"
-                    }`}
-                  >
-                    {person.actionText}
+                  <button className="px-4 py-1.5 rounded-lg font-semibold text-xs transition shrink-0 bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200">
+                    {getRelationshipText(person.relationshipStatus)}
                   </button>
                 </div>
               ))}
@@ -272,7 +269,6 @@ export function SearchPage() {
             <h3 className="font-bold text-lg text-gray-900 px-1">Bài viết</h3>
             <PostCard post={mockPost} />
           </div>
-
         </main>
       </div>
     </div>

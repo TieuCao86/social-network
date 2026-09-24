@@ -1,4 +1,4 @@
-import { getApiClient } from "../api/api-client";
+import type { ApiClient } from "../api/api-client";
 import type { ApiResponse, PageResponse } from "../types/api";
 import type {
   PostResponse,
@@ -9,30 +9,44 @@ import type {
   ReactionType,
 } from "../types/post";
 
-export const postService = {
+export const createPostService = (client: ApiClient) => ({
+  // ============================================================
+  // POSTS
+  // ============================================================
+
   // GET /api/posts/feed
   getFeed: async (
     page = 0,
     size = 10,
   ): Promise<ApiResponse<PageResponse<PostResponse>>> => {
-    return getApiClient().get<PageResponse<PostResponse>>("/api/posts/feed", {
-      params: {
-        page,
-        size,
+    return client.get<PageResponse<PostResponse>>(
+      "/api/posts/feed",
+      {
+        params: {
+          page,
+          size,
+        },
       },
-    });
+    );
   },
 
   // GET /api/posts/{id}
-  getPostById: async (postId: string): Promise<ApiResponse<PostResponse>> => {
-    return getApiClient().get<PostResponse>(`/api/posts/${postId}`);
+  getPostById: async (
+    postId: string,
+  ): Promise<ApiResponse<PostResponse>> => {
+    return client.get<PostResponse>(
+      `/api/posts/${postId}`,
+    );
   },
 
   // POST /api/posts
   createPost: async (
     payload: PostCreateRequest,
   ): Promise<ApiResponse<PostResponse>> => {
-    return getApiClient().post<PostResponse>("/api/posts", payload);
+    return client.post<PostResponse>(
+      "/api/posts",
+      payload,
+    );
   },
 
   // GET /api/posts/user/{authorId}
@@ -41,7 +55,7 @@ export const postService = {
     page = 0,
     size = 10,
   ): Promise<ApiResponse<PageResponse<PostResponse>>> => {
-    return getApiClient().get<PageResponse<PostResponse>>(
+    return client.get<PageResponse<PostResponse>>(
       `/api/posts/user/${authorId}`,
       {
         params: {
@@ -53,16 +67,24 @@ export const postService = {
   },
 
   // DELETE /api/posts/{id}
-  deletePost: async (postId: string): Promise<ApiResponse<void>> => {
-    return getApiClient().delete<void>(`/api/posts/${postId}`);
+  deletePost: async (
+    postId: string,
+  ): Promise<ApiResponse<void>> => {
+    return client.delete<void>(
+      `/api/posts/${postId}`,
+    );
   },
+
+  // ============================================================
+  // REACTIONS
+  // ============================================================
 
   // POST /api/posts/{id}/reactions
   reactToPost: async (
     postId: string,
     payload: ReactionRequest,
   ): Promise<ApiResponse<ReactionResponse>> => {
-    return getApiClient().post<ReactionResponse>(
+    return client.post<ReactionResponse>(
       `/api/posts/${postId}/reactions`,
       payload,
     );
@@ -75,7 +97,7 @@ export const postService = {
     page = 0,
     size = 20,
   ): Promise<ApiResponse<PageResponse<ReactionUserResponse>>> => {
-    return getApiClient().get<PageResponse<ReactionUserResponse>>(
+    return client.get<PageResponse<ReactionUserResponse>>(
       `/api/posts/${postId}/reactions`,
       {
         params: {
@@ -86,4 +108,4 @@ export const postService = {
       },
     );
   },
-};
+});

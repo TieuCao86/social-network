@@ -107,4 +107,24 @@ public class UserController {
                 response
         );
     }
+
+    @Operation(summary = "Lấy thông tin profile của người dùng khác")
+    @GetMapping("/{userId}/profile")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<UserResponse> getUserProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID userId
+    ) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
+
+        UserResponse response =
+                userService.getCurrentUserProfile(userId);
+
+        return ApiResponse.success(
+                "Lấy thông tin người dùng thành công",
+                response
+        );
+    }
 }

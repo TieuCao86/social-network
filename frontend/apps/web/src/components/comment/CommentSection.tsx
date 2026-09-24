@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { MessageSquare } from "lucide-react";
 
-import { useInfiniteComments, useCreateComment } from "@social/shared";
+import { comment as commentHooks } from "../../api/client";
+
+import type { CommentResponse } from "@social/shared";
 
 import { CommentItem } from "./CommentItem";
 
@@ -13,7 +15,7 @@ interface CommentSectionProps {
 export function CommentSection({ postId, commentCount }: CommentSectionProps) {
   const [content, setContent] = useState("");
 
-  const createComment = useCreateComment();
+  const createComment = commentHooks.useCreateComment();
 
   const {
     data,
@@ -22,7 +24,7 @@ export function CommentSection({ postId, commentCount }: CommentSectionProps) {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useInfiniteComments(postId, 10);
+  } = commentHooks.useInfiniteComments(postId, 10);
 
   const comments = data?.pages.flatMap((page) => page.content) ?? [];
 
@@ -104,8 +106,12 @@ export function CommentSection({ postId, commentCount }: CommentSectionProps) {
 
       {!isLoading && !isError && comments.length > 0 && (
         <div className="space-y-6">
-          {comments.map((comment) => (
-            <CommentItem key={comment.id} comment={comment} postId={postId} />
+          {comments.map((comment: CommentResponse) => (
+            <CommentItem
+              key={comment.commentId}
+              comment={comment}
+              postId={postId}
+            />
           ))}
 
           {hasNextPage && (

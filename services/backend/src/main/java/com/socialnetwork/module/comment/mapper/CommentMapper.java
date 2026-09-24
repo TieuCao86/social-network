@@ -31,6 +31,7 @@ public interface CommentMapper {
     // RESPONSE
     // ============================================================
 
+    @Mapping(target = "commentId", source = "id")
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "mediaList", ignore = true)
     @Mapping(target = "replyCount", ignore = true)
@@ -41,7 +42,10 @@ public interface CommentMapper {
     // UPDATE
     // ============================================================
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @BeanMapping(
+            nullValuePropertyMappingStrategy =
+                    NullValuePropertyMappingStrategy.IGNORE
+    )
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "postId", ignore = true)
     @Mapping(target = "userId", ignore = true)
@@ -59,5 +63,6 @@ public interface CommentMapper {
     // MEDIA RESPONSE
     // ============================================================
 
+    @Mapping(target = "mediaId", source = "id")
     CommentMediaResponse toMediaResponse(CommentMedia media);
 }

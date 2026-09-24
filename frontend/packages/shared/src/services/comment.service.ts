@@ -1,4 +1,4 @@
-import { getApiClient } from "../api/api-client";
+import type { ApiClient } from "../api/api-client";
 import type { ApiResponse, PageResponse } from "../types/api";
 import type {
   CommentCreateRequest,
@@ -6,7 +6,7 @@ import type {
   CommentUpdateRequest,
 } from "../types/comment";
 
-export const commentService = {
+export const createCommentService = (client: ApiClient) => ({
   // ============================================================
   // CREATE COMMENT / REPLY
   // ============================================================
@@ -14,7 +14,7 @@ export const commentService = {
     postId: string,
     payload: CommentCreateRequest,
   ): Promise<ApiResponse<CommentResponse>> => {
-    return getApiClient().post<CommentResponse>(
+    return client.post<CommentResponse>(
       `/api/comments/posts/${postId}`,
       payload,
     );
@@ -28,9 +28,11 @@ export const commentService = {
     page = 0,
     size = 10,
   ): Promise<ApiResponse<PageResponse<CommentResponse>>> => {
-    return getApiClient().get<PageResponse<CommentResponse>>(
+    return client.get<PageResponse<CommentResponse>>(
       `/api/comments/posts/${postId}`,
-      { params: { page, size } },
+      {
+        params: { page, size },
+      },
     );
   },
 
@@ -42,9 +44,11 @@ export const commentService = {
     page = 0,
     size = 10,
   ): Promise<ApiResponse<PageResponse<CommentResponse>>> => {
-    return getApiClient().get<PageResponse<CommentResponse>>(
+    return client.get<PageResponse<CommentResponse>>(
       `/api/comments/${commentId}/replies`,
-      { params: { page, size } },
+      {
+        params: { page, size },
+      },
     );
   },
 
@@ -52,16 +56,14 @@ export const commentService = {
   // COUNT COMMENTS
   // ============================================================
   countComments: async (postId: string): Promise<ApiResponse<number>> => {
-    return getApiClient().get<number>(`/api/comments/posts/${postId}/count`);
+    return client.get<number>(`/api/comments/posts/${postId}/count`);
   },
 
   // ============================================================
   // COUNT REPLIES
   // ============================================================
   countReplies: async (commentId: string): Promise<ApiResponse<number>> => {
-    return getApiClient().get<number>(
-      `/api/comments/${commentId}/replies/count`,
-    );
+    return client.get<number>(`/api/comments/${commentId}/replies/count`);
   },
 
   // ============================================================
@@ -71,16 +73,13 @@ export const commentService = {
     commentId: string,
     payload: CommentUpdateRequest,
   ): Promise<ApiResponse<CommentResponse>> => {
-    return getApiClient().put<CommentResponse>(
-      `/api/comments/${commentId}`,
-      payload,
-    );
+    return client.put<CommentResponse>(`/api/comments/${commentId}`, payload);
   },
 
   // ============================================================
   // DELETE COMMENT
   // ============================================================
   deleteComment: async (commentId: string): Promise<ApiResponse<void>> => {
-    return getApiClient().delete<void>(`/api/comments/${commentId}`);
+    return client.delete<void>(`/api/comments/${commentId}`);
   },
-};
+});

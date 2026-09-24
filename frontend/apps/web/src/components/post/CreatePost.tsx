@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-import { useCreatePost } from "@social/shared";
+import { post } from "../../api/client";
 
 export function CreatePost() {
   const [content, setContent] = useState("");
 
-  const createPost = useCreatePost();
+  const createPost = post.useCreatePost();
 
   const handleCreatePost = () => {
     const trimmedContent = content.trim();

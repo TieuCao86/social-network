@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Camera,
   Plus,
@@ -18,21 +19,90 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import { useUserPosts } from "@social/shared";
+import type { UserResponse, RelationshipStatus } from "@social/shared";
+
+import {
+  createRelationshipService,
+  createUserService,
+  getApiClient,
+  getRelationshipText,
+} from "@social/shared";
+
+import { post } from "../api/client";
 
 import { PostCard } from "../components/post/PostCard";
 import { Navbar } from "../components/ui/Navbar";
-
 import { auth } from "../api/client";
 
 export function ProfilePage() {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("");
 
-  const { data: userData } = auth.useMe();
+  const { userId } = useParams<{ userId: string }>();
+  const [relationshipStatus, setRelationshipStatus] =
+    useState<RelationshipStatus | null>(null);
+
+  const { data: currentUser } = auth.useMe();
+
+  const [userData, setUserData] = useState<UserResponse | null>(null);
+  const [loadingUser, setLoadingUser] = useState(false);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      // /profile → profile của chính mình
+      if (!userId) {
+        setUserData(currentUser ?? null);
+        return;
+      }
+
+      // /profile/:userId → profile người khác
+      try {
+        setLoadingUser(true);
+
+        const client = getApiClient();
+        const userService = createUserService(client);
+
+        const response = await userService.getUserProfile(userId);
+
+        setUserData(response);
+      } catch (error) {
+        console.error("Load profile error:", error);
+        setUserData(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    loadProfile();
+  }, [userId, currentUser]);
+
+  useEffect(() => {
+    const loadRelationship = async () => {
+      // Đang xem profile của chính mình
+      if (!userId) {
+        setRelationshipStatus(null);
+        return;
+      }
+
+      try {
+        const client = getApiClient();
+
+        const relationshipService = createRelationshipService(client);
+
+        const response = await relationshipService.getRelationship(userId);
+
+        setRelationshipStatus(response.relationshipStatus);
+      } catch (error) {
+        console.error("Load relationship error:", error);
+        setRelationshipStatus(null);
+      }
+    };
+
+    loadRelationship();
+  }, [userId]);
 
   const authorId = userData?.userId ?? "";
 
-  const { data: postsData, isLoading: postsLoading } = useUserPosts(authorId);
+  const { data: postsData, isLoading: postsLoading } = post.useUserPosts(authorId);
 
   const posts = postsData?.pages.flatMap((page) => page.content) ?? [];
 
@@ -44,10 +114,7 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen w-full bg-slate-100 flex flex-col text-gray-800 relative">
       {/* Navbar full width */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Main Content Container bounded to max-w-5xl */}
       <div className="flex-1 w-full max-w-5xl mx-auto bg-white shadow min-h-screen">
@@ -79,7 +146,7 @@ export function ProfilePage() {
 
               <div className="text-center md:text-left mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">
-                   {userData?.fullName || userData?.username || "Người dùng"}
+                  {userData?.fullName || userData?.username || "Người dùng"}
                 </h1>
 
                 <p className="text-gray-600 text-sm font-semibold">
@@ -92,19 +159,38 @@ export function ProfilePage() {
 
             {/* Action Buttons */}
             <div className="flex space-x-2 mt-4 md:mt-0">
-              <button className="bg-teal-600 text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-teal-700 flex items-center space-x-2 transition">
-                <Plus className="w-4 h-4" />
-                <span>Thêm vào tin</span>
-              </button>
+              {userId ? (
+                <>
+                  <button className="bg-teal-600 text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-teal-700 flex items-center space-x-2 transition">
+                    <User className="w-4 h-4" />
+                    <span>{getRelationshipText(relationshipStatus)}</span>
+                  </button>
 
-              <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 flex items-center space-x-2 transition">
-                <Pencil className="w-4 h-4" />
-                <span>Chỉnh sửa trang cá nhân</span>
-              </button>
+                  <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 transition">
+                    <span>Nhắn tin</span>
+                  </button>
 
-              <button className="bg-gray-200 text-gray-800 px-3 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 transition">
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
+                  <button className="bg-gray-200 text-gray-800 px-3 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 transition">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="bg-teal-600 text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-teal-700 flex items-center space-x-2 transition">
+                    <Plus className="w-4 h-4" />
+                    <span>Thêm vào tin</span>
+                  </button>
+
+                  <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 flex items-center space-x-2 transition">
+                    <Pencil className="w-4 h-4" />
+                    <span>Chỉnh sửa trang cá nhân</span>
+                  </button>
+
+                  <button className="bg-gray-200 text-gray-800 px-3 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 transition">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -182,7 +268,9 @@ export function ProfilePage() {
 
             {/* Work Card */}
             <div className="bg-white p-4 rounded-xl shadow-sm">
-              <h2 className="text-lg font-bold mb-3 text-gray-900">Công việc</h2>
+              <h2 className="text-lg font-bold mb-3 text-gray-900">
+                Công việc
+              </h2>
 
               <div className="flex items-center space-x-3 text-sm text-gray-700">
                 <Briefcase className="w-5 h-5 text-gray-500 shrink-0" />

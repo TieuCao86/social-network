@@ -14,7 +14,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-import { useFeed } from "@social/shared";
+import { post } from "../api/client";
 
 import { CreatePost } from "../components/post/CreatePost";
 import { PostCard } from "../components/post/PostCard";
@@ -25,7 +25,7 @@ export function HomePage() {
   const [chatOpen, setChatOpen] = useState(true);
   const [message, setMessage] = useState("");
 
-  const { data, isLoading, isError } = useFeed();
+  const { data, isLoading, isError } = post.useFeed();
 
   const posts = data?.pages.flatMap((page) => page.content) ?? [];
 

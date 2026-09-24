@@ -3,6 +3,9 @@ import {
   createAxiosApiClient,
   setApiClient,
   createUseAuth,
+  createPostHooks,
+  createCommentHooks,
+  createRelationshipHooks,
 } from "@social/shared";
 
 const axiosClient = createApiClient(
@@ -51,3 +54,9 @@ setApiClient(apiClient);
 
 // Auth hooks của Web
 export const auth = createUseAuth(apiClient);
+
+export const post = createPostHooks(apiClient);
+
+export const comment = createCommentHooks(apiClient);
+
+export const relationship = createRelationshipHooks(apiClient);

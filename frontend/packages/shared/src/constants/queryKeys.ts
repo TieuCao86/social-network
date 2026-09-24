@@ -15,6 +15,13 @@ export const queryKeys = {
       [...queryKeys.users.all, "profile", username] as const,
   },
 
+  relationships: {
+    all: ["relationships"] as const,
+
+    detail: (userId: string) =>
+      [...queryKeys.relationships.all, "detail", userId] as const,
+  },
+
   posts: {
     all: ["posts"] as const,
 

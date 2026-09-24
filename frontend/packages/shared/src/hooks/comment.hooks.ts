@@ -5,187 +5,259 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { commentService } from "../services/comment.service";
+import type { ApiClient } from "../api/api-client";
+import { createCommentService } from "../services/comment.service";
 import { queryKeys } from "../constants/queryKeys";
+
 import type {
   CommentCreateRequest,
   CommentUpdateRequest,
 } from "../types/comment";
 
-/**
- * ============================================================
- * GET COMMENTS
- * ============================================================
- */
-export function useInfiniteComments(postId: string, size = 10) {
-  return useInfiniteQuery({
-    queryKey: queryKeys.comments.byPost(postId),
-    enabled: !!postId,
-    initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
-      const response = await commentService.getComments(postId, pageParam, size);
+export const createCommentHooks = (client: ApiClient) => {
+  const commentService = createCommentService(client);
 
-      if (!response.success || !response.data) {
-        throw new Error(response.message || "Không lấy được danh sách bình luận");
-      }
+  /**
+   * ============================================================
+   * GET COMMENTS
+   * ============================================================
+   */
+  const useInfiniteComments = (postId: string, size = 10) => {
+    return useInfiniteQuery({
+      queryKey: queryKeys.comments.byPost(postId),
+      enabled: !!postId,
+      initialPageParam: 0,
 
-      return response.data;
-    },
-    getNextPageParam: (lastPage) => {
-      if (lastPage.last) return undefined;
-      return lastPage.number + 1;
-    },
-  });
-}
+      queryFn: async ({ pageParam }) => {
+        const response = await commentService.getComments(
+          postId,
+          pageParam,
+          size,
+        );
 
-/**
- * ============================================================
- * GET REPLIES
- * ============================================================
- */
-export function useInfiniteReplies(commentId: string, size = 10) {
-  return useInfiniteQuery({
-    queryKey: queryKeys.comments.replies(commentId),
-    enabled: !!commentId,
-    initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
-      const response = await commentService.getReplies(commentId, pageParam, size);
+        if (!response.success || !response.data) {
+          throw new Error(
+            response.message || "Không lấy được danh sách bình luận",
+          );
+        }
 
-      if (!response.success || !response.data) {
-        throw new Error(response.message || "Không lấy được danh sách phản hồi");
-      }
+        return response.data;
+      },
 
-      return response.data;
-    },
-    getNextPageParam: (lastPage) => {
-      if (lastPage.last) return undefined;
-      return lastPage.number + 1;
-    },
-  });
-}
+      getNextPageParam: (lastPage) => {
+        if (lastPage.last) {
+          return undefined;
+        }
 
-/**
- * ============================================================
- * COUNT COMMENTS
- * ============================================================
- */
-export function useCountComments(postId: string) {
-  return useQuery({
-    queryKey: queryKeys.comments.countByPost(postId),
-    enabled: !!postId,
-    queryFn: async () => {
-      const response = await commentService.countComments(postId);
+        return lastPage.number + 1;
+      },
+    });
+  };
 
-      if (!response.success) {
-        throw new Error(response.message || "Không đếm được số bình luận");
-      }
+  /**
+   * ============================================================
+   * GET REPLIES
+   * ============================================================
+   */
+  const useInfiniteReplies = (commentId: string, size = 10) => {
+    return useInfiniteQuery({
+      queryKey: queryKeys.comments.replies(commentId),
+      enabled: !!commentId,
+      initialPageParam: 0,
 
-      return response.data ?? 0;
-    },
-  });
-}
+      queryFn: async ({ pageParam }) => {
+        const response = await commentService.getReplies(
+          commentId,
+          pageParam,
+          size,
+        );
 
-/**
- * ============================================================
- * COUNT REPLIES
- * ============================================================
- */
-export function useCountReplies(commentId: string) {
-  return useQuery({
-    queryKey: queryKeys.comments.countReplies(commentId),
-    enabled: !!commentId,
-    queryFn: async () => {
-      const response = await commentService.countReplies(commentId);
+        if (!response.success || !response.data) {
+          throw new Error(
+            response.message || "Không lấy được danh sách phản hồi",
+          );
+        }
 
-      if (!response.success) {
-        throw new Error(response.message || "Không đếm được số phản hồi");
-      }
+        return response.data;
+      },
 
-      return response.data ?? 0;
-    },
-  });
-}
+      getNextPageParam: (lastPage) => {
+        if (lastPage.last) {
+          return undefined;
+        }
 
-/**
- * ============================================================
- * CREATE COMMENT / REPLY
- * ============================================================
- */
-export function useCreateComment() {
-  const queryClient = useQueryClient();
+        return lastPage.number + 1;
+      },
+    });
+  };
 
-  return useMutation({
-    mutationFn: ({ postId, payload }: { postId: string; payload: CommentCreateRequest }) =>
-      commentService.createComment(postId, payload),
-    onSuccess: (_response, variables) => {
-      // Reload danh sách và tổng số comment gốc
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.comments.byPost(variables.postId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.comments.countByPost(variables.postId),
-      });
+  /**
+   * ============================================================
+   * COUNT COMMENTS
+   * ============================================================
+   */
+  const useCountComments = (postId: string) => {
+    return useQuery({
+      queryKey: queryKeys.comments.countByPost(postId),
+      enabled: !!postId,
 
-      // Nếu đây là reply, reload lại danh sách replies của comment cha
-      if (variables.payload.parentId) {
+      queryFn: async () => {
+        const response = await commentService.countComments(postId);
+
+        if (!response.success) {
+          throw new Error(response.message || "Không đếm được số bình luận");
+        }
+
+        return response.data ?? 0;
+      },
+    });
+  };
+
+  /**
+   * ============================================================
+   * COUNT REPLIES
+   * ============================================================
+   */
+  const useCountReplies = (commentId: string) => {
+    return useQuery({
+      queryKey: queryKeys.comments.countReplies(commentId),
+      enabled: !!commentId,
+
+      queryFn: async () => {
+        const response = await commentService.countReplies(commentId);
+
+        if (!response.success) {
+          throw new Error(response.message || "Không đếm được số phản hồi");
+        }
+
+        return response.data ?? 0;
+      },
+    });
+  };
+
+  /**
+   * ============================================================
+   * CREATE COMMENT / REPLY
+   * ============================================================
+   */
+  const useCreateComment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: ({
+        postId,
+        payload,
+      }: {
+        postId: string;
+        payload: CommentCreateRequest;
+      }) => commentService.createComment(postId, payload),
+
+      onSuccess: (_response, variables) => {
+        // Reload danh sách comment
         queryClient.invalidateQueries({
-          queryKey: queryKeys.comments.replies(variables.payload.parentId),
+          queryKey: queryKeys.comments.byPost(variables.postId),
         });
+
+        // Reload tổng số comment
         queryClient.invalidateQueries({
-          queryKey: queryKeys.comments.countReplies(variables.payload.parentId),
+          queryKey: queryKeys.comments.countByPost(variables.postId),
         });
-      }
 
-      // Cập nhật commentCount trong post list và post detail
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.feed() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.detail(variables.postId) });
-    },
-  });
-}
+        // Nếu là reply
+        if (variables.payload.parentId) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.comments.replies(variables.payload.parentId),
+          });
 
-/**
- * ============================================================
- * UPDATE COMMENT
- * ============================================================
- */
-export function useUpdateComment() {
-  const queryClient = useQueryClient();
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.comments.countReplies(
+              variables.payload.parentId,
+            ),
+          });
+        }
 
-  return useMutation({
-    mutationFn: ({ commentId, payload }: { commentId: string; payload: CommentUpdateRequest }) =>
-      commentService.updateComment(commentId, payload),
-    onSuccess: (response) => {
-      const comment = response.data;
-      if (!comment) return;
-
-      // Cập nhật Comment gốc
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.comments.byPost(comment.postId),
-      });
-
-      // Cập nhật Reply nếu có
-      if (comment.parentId) {
+        // Cập nhật commentCount của post
         queryClient.invalidateQueries({
-          queryKey: queryKeys.comments.replies(comment.parentId),
+          queryKey: queryKeys.posts.feed(),
         });
-      }
-    },
-  });
-}
 
-/**
- * ============================================================
- * DELETE COMMENT
- * ============================================================
- */
-export function useDeleteComment() {
-  const queryClient = useQueryClient();
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.posts.detail(variables.postId),
+        });
+      },
+    });
+  };
 
-  return useMutation({
-    mutationFn: (commentId: string) => commentService.deleteComment(commentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.posts.feed() });
-    },
-  });
-}
+  /**
+   * ============================================================
+   * UPDATE COMMENT
+   * ============================================================
+   */
+  const useUpdateComment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: ({
+        commentId,
+        payload,
+      }: {
+        commentId: string;
+        payload: CommentUpdateRequest;
+      }) => commentService.updateComment(commentId, payload),
+
+      onSuccess: (response) => {
+        const comment = response.data;
+
+        if (!comment) {
+          return;
+        }
+
+        // Cập nhật comment gốc
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.comments.byPost(comment.postId),
+        });
+
+        // Cập nhật reply
+        if (comment.parentId) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.comments.replies(comment.parentId),
+          });
+        }
+      },
+    });
+  };
+
+  /**
+   * ============================================================
+   * DELETE COMMENT
+   * ============================================================
+   */
+  const useDeleteComment = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: (commentId: string) =>
+        commentService.deleteComment(commentId),
+
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.comments.all,
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.posts.feed(),
+        });
+      },
+    });
+  };
+
+  return {
+    useInfiniteComments,
+    useInfiniteReplies,
+    useCountComments,
+    useCountReplies,
+    useCreateComment,
+    useUpdateComment,
+    useDeleteComment,
+  };
+};
