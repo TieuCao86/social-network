@@ -4,6 +4,8 @@ import type { ApiClient } from "../api/api-client";
 import { createRelationshipService } from "../services/relationship.service";
 import { queryKeys } from "../constants/queryKeys";
 
+import type { RelationshipStatus } from "../types/user";
+
 export const createRelationshipHooks = (client: ApiClient) => {
   const relationshipService = createRelationshipService(client);
 
@@ -152,6 +154,72 @@ export const createRelationshipHooks = (client: ApiClient) => {
     });
   };
 
+  // ============================================================
+  // RELATIONSHIP ACTION
+  // ============================================================
+
+  const useRelationshipActions = () => {
+    const sendFriendRequest = useSendFriendRequest();
+    const acceptFriendRequest = useAcceptFriendRequest();
+    const rejectFriendRequest = useRejectFriendRequest();
+    const cancelFriendRequest = useCancelFriendRequest();
+    const unfriend = useUnfriend();
+    const follow = useFollow();
+    const unfollow = useUnfollow();
+
+    const handleRelationshipAction = (
+      targetUserId: string,
+      status: RelationshipStatus | null,
+    ) => {
+      switch (status) {
+        case "NONE":
+          sendFriendRequest.mutate(targetUserId);
+          break;
+
+        case "REQUEST_SENT":
+          cancelFriendRequest.mutate(targetUserId);
+          break;
+
+        case "REQUEST_RECEIVED":
+          acceptFriendRequest.mutate(targetUserId);
+          break;
+
+        case "FRIENDS":
+          unfriend.mutate(targetUserId);
+          break;
+
+        case "FOLLOWING":
+          unfollow.mutate(targetUserId);
+          break;
+
+        case "FOLLOWED_BY":
+          follow.mutate(targetUserId);
+          break;
+
+        case "FOLLOWING_EACH_OTHER":
+          unfollow.mutate(targetUserId);
+          break;
+
+        case "BLOCKING":
+        case "BLOCKED_BY":
+        default:
+          break;
+      }
+    };
+
+    return {
+      handleRelationshipAction,
+
+      sendFriendRequest,
+      acceptFriendRequest,
+      rejectFriendRequest,
+      cancelFriendRequest,
+      unfriend,
+      follow,
+      unfollow,
+    };
+  };
+
   return {
     useRelationship,
     useSendFriendRequest,
@@ -161,5 +229,6 @@ export const createRelationshipHooks = (client: ApiClient) => {
     useUnfriend,
     useFollow,
     useUnfollow,
+    useRelationshipActions,
   };
 };

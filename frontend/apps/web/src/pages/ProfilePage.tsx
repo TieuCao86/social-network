@@ -19,29 +19,33 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import type { UserResponse, RelationshipStatus } from "@social/shared";
+import type { UserResponse } from "@social/shared";
 
 import {
-  createRelationshipService,
   createUserService,
   getApiClient,
   getRelationshipText,
 } from "@social/shared";
 
-import { post } from "../api/client";
+import { post, relationship, auth } from "../api/client";
 
 import { PostCard } from "../components/post/PostCard";
 import { Navbar } from "../components/ui/Navbar";
-import { auth } from "../api/client";
 
 export function ProfilePage() {
   const [activeTab, setActiveTab] = useState("");
 
   const { userId } = useParams<{ userId: string }>();
-  const [relationshipStatus, setRelationshipStatus] =
-    useState<RelationshipStatus | null>(null);
 
   const { data: currentUser } = auth.useMe();
+
+  const sendFriendRequest = relationship.useSendFriendRequest();
+  const acceptFriendRequest = relationship.useAcceptFriendRequest();
+  const rejectFriendRequest = relationship.useRejectFriendRequest();
+  const cancelFriendRequest = relationship.useCancelFriendRequest();
+  const unfriend = relationship.useUnfriend();
+  const follow = relationship.useFollow();
+  const unfollow = relationship.useUnfollow();
 
   const [userData, setUserData] = useState<UserResponse | null>(null);
   const [loadingUser, setLoadingUser] = useState(false);
@@ -75,34 +79,14 @@ export function ProfilePage() {
     loadProfile();
   }, [userId, currentUser]);
 
-  useEffect(() => {
-    const loadRelationship = async () => {
-      // Đang xem profile của chính mình
-      if (!userId) {
-        setRelationshipStatus(null);
-        return;
-      }
+  const { data: relationshipData } = relationship.useRelationship(userId ?? "");
 
-      try {
-        const client = getApiClient();
-
-        const relationshipService = createRelationshipService(client);
-
-        const response = await relationshipService.getRelationship(userId);
-
-        setRelationshipStatus(response.relationshipStatus);
-      } catch (error) {
-        console.error("Load relationship error:", error);
-        setRelationshipStatus(null);
-      }
-    };
-
-    loadRelationship();
-  }, [userId]);
+  const relationshipStatus = relationshipData?.relationshipStatus ?? null;
 
   const authorId = userData?.userId ?? "";
 
-  const { data: postsData, isLoading: postsLoading } = post.useUserPosts(authorId);
+  const { data: postsData, isLoading: postsLoading } =
+    post.useUserPosts(authorId);
 
   const posts = postsData?.pages.flatMap((page) => page.content) ?? [];
 
@@ -161,10 +145,23 @@ export function ProfilePage() {
             <div className="flex space-x-2 mt-4 md:mt-0">
               {userId ? (
                 <>
-                  <button className="bg-teal-600 text-white px-4 py-2 rounded-md font-semibold text-sm hover:bg-teal-700 flex items-center space-x-2 transition">
+                  <button
+                    onClick={() =>
+                      handleRelationshipAction(userId!, relationshipStatus)
+                    }
+                  >
                     <User className="w-4 h-4" />
                     <span>{getRelationshipText(relationshipStatus)}</span>
                   </button>
+
+                  {relationshipStatus === "REQUEST_RECEIVED" && (
+                    <button
+                      onClick={() => rejectFriendRequest.mutate(userId!)}
+                      disabled={rejectFriendRequest.isPending}
+                    >
+                      Từ chối
+                    </button>
+                  )}
 
                   <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 transition">
                     <span>Nhắn tin</span>
