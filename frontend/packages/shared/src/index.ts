@@ -26,6 +26,7 @@ export * from "./hooks/auth.hooks";
 export * from "./hooks/post.hooks";
 export * from "./hooks/comment.hooks";
 export * from "./hooks/relationship.hooks";
+export * from "./hooks/useInfiniteScroll";
 
 export * from "./utils/formatRelativeTime";
 export * from "./utils/relationship";

@@ -18,5 +18,7 @@ logging:
 # Cấu hình app.jwt
 app:
     jwt:
-        secret: ${JWT_SECRET:${app.jwt.secret:}}
+        secret: ${JWT_SECRET:${local.jwt.secret:}}
         expiration-ms: 86400000
+    file:
+        storage-dir: uploads

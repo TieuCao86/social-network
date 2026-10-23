@@ -7,14 +7,22 @@ import { queryKeys } from "../constants/queryKeys";
 
 import type { LoginRequest, LoginResponse, UserResponse } from "../types";
 
+const authEnabledKey = ["auth", "enabled"] as const;
+
 export const createUseAuth = (client: ApiClient) => {
   const authService = createAuthService(client);
   const userService = createUserService(client);
 
   const useMe = () => {
+    const queryClient = useQueryClient();
+
+    const authEnabled =
+      queryClient.getQueryData<boolean>(authEnabledKey) ?? true;
+
     return useQuery<UserResponse>({
       queryKey: queryKeys.auth.me(),
       queryFn: () => userService.getProfile(),
+      enabled: authEnabled,
       retry: false,
     });
   };
@@ -25,8 +33,10 @@ export const createUseAuth = (client: ApiClient) => {
     return useMutation<LoginResponse, Error, LoginRequest>({
       mutationFn: (body) => authService.login(body),
 
-      onSuccess: () => {
-        queryClient.invalidateQueries({
+      onSuccess: async () => {
+        queryClient.setQueryData(authEnabledKey, true);
+
+        await queryClient.invalidateQueries({
           queryKey: queryKeys.auth.me(),
         });
       },
@@ -39,7 +49,13 @@ export const createUseAuth = (client: ApiClient) => {
     return useMutation<void, Error>({
       mutationFn: () => authService.logout(),
 
-      onSuccess: () => {
+      onSuccess: async () => {
+        queryClient.setQueryData(authEnabledKey, false);
+
+        await queryClient.cancelQueries({
+          queryKey: queryKeys.auth.me(),
+        });
+
         queryClient.removeQueries({
           queryKey: queryKeys.auth.me(),
         });
@@ -47,9 +63,5 @@ export const createUseAuth = (client: ApiClient) => {
     });
   };
 
-  return {
-    useMe,
-    useLogin,
-    useLogout,
-  };
+  return { useMe, useLogin, useLogout };
 };

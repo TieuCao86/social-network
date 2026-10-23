@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Home,
   Compass,
@@ -19,13 +19,27 @@ import { post } from "../api/client";
 import { CreatePost } from "../components/post/CreatePost";
 import { PostCard } from "../components/post/PostCard";
 import { Navbar } from "../components/ui/Navbar";
+import { useInfiniteScroll } from "@social/shared";
 
 export function HomePage() {
   const [activeTab, setActiveTab] = useState("home");
   const [chatOpen, setChatOpen] = useState(true);
   const [message, setMessage] = useState("");
 
-  const { data, isLoading, isError } = post.useFeed();
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = post.useFeed();
+
+  const loadMoreRef = useInfiniteScroll({
+    fetchNextPage,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+  });
 
   const posts = data?.pages.flatMap((page) => page.content) ?? [];
 
@@ -74,10 +88,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen w-full bg-slate-100 flex flex-col text-gray-800 relative">
       {/* ================= NAVBAR ================= */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* ================= MAIN CONTENT ================= */}
       <div className="flex-1 w-full max-w-[1440px] mx-auto grid grid-cols-12 gap-4 lg:gap-6 p-3 md:p-6 pb-20 md:pb-6">
@@ -169,6 +180,17 @@ export function HomePage() {
           {posts.map((post) => (
             <PostCard key={post.postId} post={post} />
           ))}
+
+          {/* Vùng kích hoạt tải thêm */}
+          <div ref={loadMoreRef} className="py-4 text-center">
+            {isFetchingNextPage && (
+              <p className="text-sm text-gray-500">Đang tải thêm bài viết...</p>
+            )}
+
+            {!hasNextPage && posts.length > 0 && !isError && (
+              <p className="text-sm text-gray-400">Bạn đã xem hết bài viết.</p>
+            )}
+          </div>
         </main>
 
         {/* RIGHT SIDEBAR (DESKTOP) */}

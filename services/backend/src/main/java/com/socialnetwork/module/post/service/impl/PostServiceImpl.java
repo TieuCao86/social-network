@@ -8,6 +8,7 @@ import com.socialnetwork.module.post.entity.Post;
 import com.socialnetwork.module.post.entity.PostMedia;
 import com.socialnetwork.module.post.entity.PostReaction;
 import com.socialnetwork.module.post.entity.enums.PostStatus;
+import com.socialnetwork.module.post.entity.enums.PostVisibility;
 import com.socialnetwork.module.post.entity.enums.ReactionType;
 import com.socialnetwork.module.post.mapper.PostMapper;
 import com.socialnetwork.module.post.repository.PostMediaRepository;
@@ -154,18 +155,15 @@ public class PostServiceImpl implements PostService {
             UUID currentUserId,
             Pageable pageable
     ) {
-        Page<Post> postsPage =
-                postRepository
-                        .findByAuthorIdAndStatusOrderByCreatedAtDesc(
-                                authorId,
-                                PostStatus.ACTIVE,
-                                pageable
-                        );
 
-        return buildResponsePage(
-                postsPage,
-                currentUserId
-        );
+        Page<Post> postsPage =
+                postRepository.findByAuthorIdAndStatusOrderByCreatedAtDesc(
+                        authorId,
+                        PostStatus.ACTIVE,
+                        pageable
+                );
+
+        return buildResponsePage(postsPage, currentUserId);
     }
 
     /**
@@ -188,17 +186,15 @@ public class PostServiceImpl implements PostService {
             authorIds.add(currentUserId);
         }
 
-        Page<Post> postsPage =
-                postRepository.findByAuthorIdInAndStatusOrderByCreatedAtDesc(
-                        authorIds,
-                        PostStatus.ACTIVE,
-                        pageable
-                );
-
-        return buildResponsePage(
-                postsPage,
-                currentUserId
+        Page<Post> postsPage = postRepository.findFeedPosts(
+                authorIds,
+                currentUserId,
+                PostStatus.ACTIVE,
+                PostVisibility.PRIVATE,
+                pageable
         );
+
+        return buildResponsePage(postsPage, currentUserId);
     }
 
     /**

@@ -18,7 +18,7 @@ import {
 
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { getApiClient, createUseAuth } from "@social/shared";
+import { useAuth } from "../../hooks/useAuth";
 
 import logoImg from "../../assets/logo.png";
 
@@ -31,8 +31,10 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { useMe } = createUseAuth(getApiClient());
+  const { useMe, useLogout } = useAuth();
+
   const { data: user } = useMe();
+  const logout = useLogout();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +65,16 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
       window.location.reload();
     } else {
       navigate("/");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout.mutateAsync();
+      setUserMenuOpen(false);
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Đăng xuất thất bại:", error);
     }
   };
 
@@ -242,14 +254,18 @@ export function Navbar({ activeTab, setActiveTab }: NavbarProps) {
                   <ChevronRight className="w-4 h-4 text-gray-500" />
                 </div>
 
-                <div className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-xl cursor-pointer transition">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-between p-2 hover:bg-gray-100 rounded-xl cursor-pointer transition"
+                >
                   <div className="flex items-center space-x-3">
                     <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
                       <LogOut className="w-5 h-5 text-gray-800" />
                     </div>
                     <span className="font-medium text-xs">Đăng xuất</span>
                   </div>
-                </div>
+                </button>
               </div>
 
               <hr className="border-gray-100 my-2" />

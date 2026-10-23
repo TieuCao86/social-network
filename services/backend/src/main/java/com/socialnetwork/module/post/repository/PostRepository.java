@@ -51,4 +51,25 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
             @Param("postId") UUID postId,
             @Param("status") PostStatus status
     );
+
+
+    @Query("""
+    SELECT p
+    FROM Post p
+    WHERE p.authorId IN :authorIds
+      AND p.status = :status
+      AND (
+          p.authorId = :currentUserId
+          OR p.visibility <> :privateVisibility
+      )
+    ORDER BY p.createdAt DESC
+    """)
+    Page<Post> findFeedPosts(
+            @Param("authorIds") List<UUID> authorIds,
+            @Param("currentUserId") UUID currentUserId,
+            @Param("status") PostStatus status,
+            @Param("privateVisibility") PostVisibility privateVisibility,
+            Pageable pageable
+    );
+
 }

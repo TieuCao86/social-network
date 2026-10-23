@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   Camera,
@@ -20,12 +20,15 @@ import {
 } from "lucide-react";
 
 import type { UserResponse } from "@social/shared";
+import type { RelationshipStatus } from "@social/shared";
 
 import {
   createUserService,
   getApiClient,
   getRelationshipText,
 } from "@social/shared";
+
+import { useInfiniteScroll } from "@social/shared";
 
 import { post, relationship, auth } from "../api/client";
 
@@ -85,15 +88,38 @@ export function ProfilePage() {
 
   const authorId = userData?.userId ?? "";
 
-  const { data: postsData, isLoading: postsLoading } =
-    post.useUserPosts(authorId);
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = post.useUserPosts(authorId);
+
+  const loadMoreRef = useInfiniteScroll({
+    fetchNextPage,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
+  });
 
   const posts = postsData?.pages.flatMap((page) => page.content) ?? [];
 
-  console.log("userData =", userData);
-  console.log("authorId =", authorId);
-  console.log("postsData =", postsData);
-  console.log("posts =", posts);
+  const handleRelationshipAction = (
+    targetUserId: string,
+    status: RelationshipStatus | null,
+  ) => {
+    const actionMap: Partial<Record<RelationshipStatus, () => void>> = {
+      FRIENDS: () => unfriend.mutate(targetUserId),
+      REQUEST_SENT: () => cancelFriendRequest.mutate(targetUserId),
+      REQUEST_RECEIVED: () => acceptFriendRequest.mutate(targetUserId),
+      FOLLOWING: () => unfollow.mutate(targetUserId),
+      FOLLOWED_BY: () => follow.mutate(targetUserId),
+    };
+
+    const executeAction =
+      actionMap[status!] || (() => sendFriendRequest.mutate(targetUserId));
+    executeAction();
+  };
 
   return (
     <div className="min-h-screen w-full bg-slate-100 flex flex-col text-gray-800 relative">
@@ -149,6 +175,15 @@ export function ProfilePage() {
                     onClick={() =>
                       handleRelationshipAction(userId!, relationshipStatus)
                     }
+                    disabled={
+                      sendFriendRequest.isPending ||
+                      acceptFriendRequest.isPending ||
+                      cancelFriendRequest.isPending ||
+                      unfriend.isPending ||
+                      follow.isPending ||
+                      unfollow.isPending
+                    }
+                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 flex items-center space-x-2 transition disabled:opacity-50"
                   >
                     <User className="w-4 h-4" />
                     <span>{getRelationshipText(relationshipStatus)}</span>
@@ -158,6 +193,7 @@ export function ProfilePage() {
                     <button
                       onClick={() => rejectFriendRequest.mutate(userId!)}
                       disabled={rejectFriendRequest.isPending}
+                      className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-semibold text-sm hover:bg-gray-300 transition disabled:opacity-50"
                     >
                       Từ chối
                     </button>
@@ -233,7 +269,6 @@ export function ProfilePage() {
               <ul className="space-y-3 text-sm text-gray-700">
                 <li className="flex items-center space-x-3">
                   <Home className="w-5 h-5 text-gray-500 shrink-0" />
-
                   <span>
                     Sống tại <strong className="text-black">Cao Lãnh</strong>
                   </span>
@@ -241,7 +276,6 @@ export function ProfilePage() {
 
                 <li className="flex items-center space-x-3">
                   <MapPin className="w-5 h-5 text-gray-500 shrink-0" />
-
                   <span>
                     Từ <strong className="text-black">Cao Lãnh</strong>
                   </span>
@@ -285,7 +319,6 @@ export function ProfilePage() {
 
               <div className="flex items-center space-x-3 text-sm text-gray-700">
                 <GraduationCap className="w-5 h-5 text-gray-500 shrink-0" />
-
                 <span>THPT TP Cao Lãnh Confessions</span>
               </div>
             </div>
@@ -346,18 +379,22 @@ export function ProfilePage() {
 
             {/* User Posts */}
             {postsLoading ? (
-              <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
-                Đang tải bài viết...
-              </div>
+              <div>Đang tải bài viết...</div>
             ) : posts.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-500">
-                Chưa có bài viết nào.
-              </div>
+              <div>Chưa có bài viết nào.</div>
             ) : (
               <div className="space-y-4">
                 {posts.map((post) => (
                   <PostCard key={post.postId} post={post} />
                 ))}
+
+                <div ref={loadMoreRef} />
+
+                {isFetchingNextPage && (
+                  <div className="py-4 text-center">
+                    Đang tải thêm bài viết...
+                  </div>
+                )}
               </div>
             )}
           </div>

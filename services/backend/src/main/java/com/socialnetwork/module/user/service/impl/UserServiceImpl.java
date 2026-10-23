@@ -191,7 +191,11 @@ public class UserServiceImpl implements UserService {
         profile.setLocation(request.getLocation());
         profile.setBirthDate(request.getBirthDate());
 
+        profile.setAvatarFileId(request.getAvatarFileId());
+        profile.setCoverFileId(request.getCoverFileId());
+
         profile = userProfileRepository.save(profile);
+        profile.setBirthDate(request.getBirthDate());
 
         return userMapper.toResponse(user, profile);
     }
