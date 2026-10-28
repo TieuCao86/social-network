@@ -75,11 +75,9 @@ class CommentServiceImplTest {
         commentId = UUID.randomUUID();
         parentCommentId = UUID.randomUUID();
 
-        sampleComment = Comment.builder()
-                .id(commentId)
+        sampleResponse = CommentResponse.builder()
+                .commentId(commentId)
                 .postId(postId)
-                .userId(currentUserId)
-                .parentId(null)
                 .content("Đây là comment test")
                 .status(CommentStatus.ACTIVE)
                 .build();
@@ -94,7 +92,7 @@ class CommentServiceImplTest {
                 .build();
 
         sampleResponse = CommentResponse.builder()
-                .id(commentId)
+                .commentId(commentId)
                 .postId(postId)
                 .content("Đây là comment test")
                 .status(CommentStatus.ACTIVE)
@@ -153,7 +151,7 @@ class CommentServiceImplTest {
                     );
 
             assertNotNull(result);
-            assertEquals(sampleResponse.getId(), result.getId());
+            assertEquals(sampleResponse.getCommentId(), result.getCommentId());
 
             verify(commentMapper).toEntity(request);
             verify(commentRepository).save(comment);
@@ -583,8 +581,8 @@ class CommentServiceImplTest {
             assertNotNull(result);
             assertEquals(1, result.getTotalElements());
             assertEquals(
-                    sampleResponse.getId(),
-                    result.getContent().get(0).getId()
+                    sampleResponse.getCommentId(),
+                    result.getContent().get(0).getCommentId()
             );
 
             verify(commentRepository)
@@ -650,7 +648,7 @@ class CommentServiceImplTest {
 
             CommentResponse replyResponse =
                     CommentResponse.builder()
-                            .id(reply.getId())
+                            .commentId(reply.getId())
                             .parentId(commentId)
                             .content("Reply")
                             .status(CommentStatus.ACTIVE)

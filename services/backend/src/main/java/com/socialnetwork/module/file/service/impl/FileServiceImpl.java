@@ -13,8 +13,10 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.tika.Tika;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,9 +24,14 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
+
+    private static final Tika TIKA = new Tika();
 
     private static final long MAX_FILE_SIZE = 50L * 1024 * 1024;
 
@@ -42,6 +49,7 @@ public class FileServiceImpl implements FileService {
     @Value("${app.file.storage-dir:uploads}")
     private String storageDir;
 
+
     @Override
     @Transactional
     public FileResponse upload(MultipartFile file, UUID userId) {
@@ -50,18 +58,7 @@ public class FileServiceImpl implements FileService {
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException(
-                    "Dung lượng file không được vượt quá 50 MB"
-            );
-        }
-
-        String contentType = file.getContentType();
-
-        if (contentType == null ||
-                !ALLOWED_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
-            throw new IllegalArgumentException(
-                    "Định dạng file không được hỗ trợ"
-            );
+            throw new IllegalArgumentException("Dung lượng file tối đa là 50 MB");
         }
 
         String originalName = file.getOriginalFilename();
@@ -70,38 +67,66 @@ public class FileServiceImpl implements FileService {
             originalName = "upload";
         }
 
-        // Chỉ giữ tên file, không dùng đường dẫn do client gửi lên.
-        originalName = Paths.get(originalName)
-                .getFileName()
-                .toString();
-
-        String extension = getSafeExtension(originalName);
-
-        String storedName = UUID.randomUUID() + extension;
-        Path root = Paths.get(storageDir).toAbsolutePath().normalize();
-        Path destination = root.resolve(storedName).normalize();
-
-        if (!destination.startsWith(root)) {
-            throw new IllegalArgumentException("Đường dẫn file không hợp lệ");
-        }
-
         try {
+            String contentType;
+
+            // Kiểm tra nội dung thực tế của file
+            try (InputStream inputStream = file.getInputStream()) {
+                contentType = TIKA.detect(inputStream, originalName);
+            }
+
+            if (!ALLOWED_TYPES.contains(contentType)) {
+                throw new IllegalArgumentException(
+                        "Định dạng file không được hỗ trợ"
+                );
+            }
+
+            String extension = getExtensionFromContentType(contentType);
+            String storedName = UUID.randomUUID() + extension;
+
+            Path root = Paths.get(storageDir)
+                    .toAbsolutePath()
+                    .normalize();
             Files.createDirectories(root);
-            file.transferTo(destination);
 
-            FileEntity entity = FileEntity.builder()
-                    .originalName(originalName)
-                    .storedName(storedName)
-                    .contentType(contentType.toLowerCase(Locale.ROOT))
-                    .sizeBytes(file.getSize())
-                    .storagePath(destination.toString())
-                    .uploadedBy(userId)
-                    .build();
+            Path destination = root.resolve(storedName).normalize();
 
-            entity = fileRepository.save(entity);
+            // Đảm bảo file không nằm ngoài thư mục upload
+            if (!destination.startsWith(root)) {
+                throw new IllegalArgumentException("Đường dẫn file không hợp lệ");
+            }
 
-            return toResponse(entity);
+            boolean fileWritten = false;
+            boolean metadataSaved = false;
 
+            try {
+                file.transferTo(destination);
+                fileWritten = true;
+
+                FileEntity entity = new FileEntity();
+                entity.setOriginalName(originalName);
+                entity.setStoredName(storedName);
+                entity.setContentType(contentType);
+                entity.setSizeBytes(file.getSize());
+                entity.setStoragePath(destination.toString());
+                entity.setUploadedBy(userId);
+
+                entity = fileRepository.save(entity);
+                metadataSaved = true;
+
+                return toResponse(entity);
+            } finally {
+                // Nếu lưu metadata thất bại, xóa file vật lý đã tạo
+                if (fileWritten && !metadataSaved) {
+                    try {
+                        Files.deleteIfExists(destination);
+                    } catch (IOException cleanupException) {
+                        // Nên ghi log để xử lý file rác còn sót
+                        log.error("Không thể xóa file sau khi upload thất bại: {}",
+                                destination, cleanupException);
+                    }
+                }
+            }
         } catch (IOException e) {
             throw new IllegalStateException("Không thể lưu file", e);
         }
@@ -139,7 +164,7 @@ public class FileServiceImpl implements FileService {
     private FileEntity findFile(UUID fileId) {
         return fileRepository.findById(fileId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Không tìm thấy file")
+                        new BusinessException(ErrorCode.RESOURCE_NOT_FOUND)
                 );
     }
 
@@ -154,22 +179,17 @@ public class FileServiceImpl implements FileService {
                 .build();
     }
 
-    private String getSafeExtension(String originalName) {
-        int index = originalName.lastIndexOf('.');
-
-        if (index < 0) {
-            return "";
-        }
-
-        String extension = originalName.substring(index).toLowerCase(Locale.ROOT);
-
-        if (!Set.of(
-                ".jpg", ".jpeg", ".png", ".webp", ".gif",
-                ".mp4", ".webm"
-        ).contains(extension)) {
-            return "";
-        }
-
-        return extension;
+    private String getExtensionFromContentType(String contentType) {
+        return switch (contentType) {
+            case "image/jpeg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case "image/gif" -> ".gif";
+            case "video/mp4" -> ".mp4";
+            case "video/webm" -> ".webm";
+            default -> throw new IllegalArgumentException(
+                    "Định dạng file không được hỗ trợ"
+            );
+        };
     }
 }
